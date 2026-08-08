@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useInterview } from "../context/InterviewContext";
 
 import Logo from "../components/common/Logo";
 import CandidateInput from "../components/setup/CandidateInput";
@@ -9,6 +10,7 @@ import FocusSelector from "../components/setup/FocusSelector";
 
 const Setup = () => {
   const navigate = useNavigate();
+  const { setupInterview } = useInterview();
 
   const [candidateName, setCandidateName] = useState("");
   const [role, setRole] = useState("AI Engineer");
@@ -18,6 +20,7 @@ const Setup = () => {
     "RAG",
     "System Design",
   ]);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleTopicToggle = (topic) => {
     setSelectedTopics((prev) =>
@@ -29,6 +32,21 @@ const Setup = () => {
 
   const handleStartInterview = (e) => {
     e.preventDefault();
+    if (!candidateName.trim()) {
+      setErrorMsg("Candidate Name is required to begin the interview.");
+      return;
+    }
+    if (!role) {
+      setErrorMsg("Please select an interview role.");
+      return;
+    }
+    if (selectedTopics.length === 0) {
+      setErrorMsg("Please select at least one interview focus topic.");
+      return;
+    }
+
+    setErrorMsg("");
+    setupInterview({ candidateName, role, difficulty, selectedTopics });
     navigate("/interview");
   };
 
@@ -53,6 +71,16 @@ const Setup = () => {
               Configure your interview before you begin.
             </p>
           </div>
+
+          {/* Validation Error Alert */}
+          {errorMsg && (
+            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
+              <svg className="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <span>{errorMsg}</span>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleStartInterview} className="space-y-5 sm:space-y-6">

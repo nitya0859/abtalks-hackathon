@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { useInterview } from "../context/InterviewContext";
 
 import Logo from "../components/common/Logo";
@@ -21,42 +20,60 @@ const Interview = () => {
     currentQuestionIndex,
     totalQuestions,
     isThinking,
-    isFollowUpPhase,
     interviewCompleted,
-    submitAnswer,
-    submitFollowUp,
     finishInterview,
   } = useInterview();
 
+  // Navigate to report after interview is completed
   useEffect(() => {
     if (interviewCompleted) {
       navigate("/report");
     }
   }, [interviewCompleted, navigate]);
 
-  return (
-    <div className="min-h-screen bg-[#060B1F] text-white flex flex-col">
+  // Finish interview manually
+  const handleFinishInterview = () => {
+    finishInterview();
+    navigate("/report");
+  };
 
-      {/* Top Navigation */}
-      <header className="border-b border-slate-800 px-6 py-4 flex justify-between items-center">
+  return (
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+
+      {/* =========================
+          TOP NAVIGATION
+      ========================== */}
+      <header className="h-[72px] flex items-center justify-between px-4 sm:px-6 border-b border-slate-800/70 bg-slate-950/90 backdrop-blur-xl">
+
+        {/* Logo */}
         <Logo />
 
-        <div className="text-sm text-slate-400">
-          Live Session: {role} Interview
+        {/* Live Session Indicator */}
+        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+
+          <span>
+            Live Session: {role} Interview
+          </span>
         </div>
 
+        {/* Finish Interview */}
         <button
-          onClick={finishInterview}
-          className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 transition"
+          onClick={handleFinishInterview}
+          className="py-2 px-4 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-md shadow-purple-900/30 cursor-pointer"
         >
           Finish Interview
         </button>
       </header>
 
-      {/* Main Interview Layout */}
-      <main className="flex-1 p-4 sm:p-6 max-w-[1700px] w-full mx-auto flex flex-col lg:flex-row gap-6 overflow-x-hidden">
+      {/* =========================
+          MAIN INTERVIEW LAYOUT
+      ========================== */}
+      <main className="flex-1 p-4 sm:p-6 max-w-[1700px] w-full mx-auto flex flex-col lg:flex-row gap-6">
 
-        {/* Left Sidebar */}
+        {/* =========================
+            LEFT SIDEBAR
+        ========================== */}
         <ProgressSidebar
           candidateName={candidateName}
           role={role}
@@ -65,9 +82,12 @@ const Interview = () => {
           totalQuestions={totalQuestions}
         />
 
-        {/* Center Interview Area */}
+        {/* =========================
+            CENTER INTERVIEW AREA
+        ========================== */}
         <section className="flex-1 flex flex-col gap-5 min-w-0">
 
+          {/* Current Question */}
           <QuestionCard
             questionNumber={currentQuestionIndex + 1}
             topic={currentQuestion.topic}
@@ -75,23 +95,22 @@ const Interview = () => {
             questionText={currentQuestion.question}
           />
 
-          <AnswerBox
-            onSubmitAnswer={submitAnswer}
-            onSubmitFollowUp={submitFollowUp}
-            isThinking={isThinking}
-            isFollowUpPhase={isFollowUpPhase}
-            followUpText={currentQuestion.followUp}
-          />
+          {/* Candidate Answer */}
+          <AnswerBox />
 
+          {/* AI Thinking State
+              Follow-up is handled inside AnswerBox.
+              Therefore ThinkingCard only receives isThinking.
+          */}
           <ThinkingCard
             isThinking={isThinking}
-            isFollowUpPhase={isFollowUpPhase}
-            followUpText={currentQuestion.followUp}
           />
 
         </section>
 
-        {/* Right Evaluation Panel */}
+        {/* =========================
+            RIGHT EVALUATION PANEL
+        ========================== */}
         <EvaluationPanel />
 
       </main>

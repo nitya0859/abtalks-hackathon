@@ -14,17 +14,26 @@ const difficulties = [
     label: "Hard",
     desc: "Deep internals, edge cases & scale",
   },
+  {
+    id: "Adaptive",
+    label: "Adaptive",
+    desc: "Difficulty changes with your performance",
+  },
 ];
 
 const DifficultySelector = ({ selected, onSelect }) => {
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-slate-300">
-        Difficulty Level
-      </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-slate-300">
+          Difficulty Level
+        </label>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {difficulties.map((level) => {
           const isSelected = selected === level.id;
+
           return (
             <button
               key={level.id}
@@ -39,22 +48,28 @@ const DifficultySelector = ({ selected, onSelect }) => {
               <div className="flex items-center justify-between mb-1">
                 <span
                   className={`font-semibold text-sm ${
-                    isSelected ? "text-white" : "text-slate-200"
+                    isSelected
+                      ? "text-white"
+                      : "text-slate-200"
                   }`}
                 >
                   {level.label}
                 </span>
+
                 <div
                   className={`w-2 h-2 rounded-full ${
                     level.id === "Easy"
                       ? "bg-emerald-400"
                       : level.id === "Medium"
                       ? "bg-purple-400"
-                      : "bg-amber-400"
+                      : level.id === "Hard"
+                      ? "bg-amber-400"
+                      : "bg-cyan-400"
                   }`}
                 />
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">
+
+              <p className="text-[11px] text-slate-500 leading-relaxed">
                 {level.desc}
               </p>
             </button>

@@ -1,35 +1,166 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Logo from "../components/common/Logo";
+import ProgressSidebar from "../components/interview/ProgressSidebar";
+import QuestionCard from "../components/interview/QuestionCard";
+import AnswerInput from "../components/interview/AnswerInput";
+import EvaluationPanel from "../components/interview/EvaluationPanel";
+
+const questionsData = {
+  1: {
+    id: 1,
+    title: "Prompt Engineering & Structured Outputs",
+    topic: "Prompt Engineering",
+    difficulty: "Easy",
+    questionText:
+      "How do you enforce deterministic JSON output schemas from LLMs in production applications to prevent downstream parsing failures?",
+    codeContext: `// Target Schema
+const OutputSchema = z.object({
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string(),
+  tags: z.array(z.string()),
+});`,
+    followUpText: "Consider JSON mode vs Function Calling / Structured Outputs API guarantees.",
+  },
+  2: {
+    id: 2,
+    title: "RAG Architecture & Vector Indexing",
+    topic: "RAG",
+    difficulty: "Medium",
+    questionText:
+      "Compare Dense Vector Retrieval vs Sparse BM25 Search. When is hybrid search necessary, and how do you calculate the hybrid weighting parameter (alpha)?",
+    codeContext: `// Hybrid Query Formulation
+const hybridScore = (alpha * denseScore) + ((1 - alpha) * bm25Score);`,
+    followUpText: "How do you handle score normalization between Cosine similarity and BM25 scores?",
+  },
+  3: {
+    id: 3,
+    title: "Hybrid Search & Chunking Strategy",
+    topic: "RAG & Vector Search",
+    difficulty: "Medium",
+    questionText:
+      "How would you optimize chunk size and overlap strategy when indexing 100k+ technical documentation pages for a retrieval-augmented generation (RAG) system using hybrid search (Dense + Sparse BM25)?",
+    codeContext: `// Example Schema Context
+const vectorStoreConfig = {
+  embeddingModel: "text-embedding-3-large",
+  dimensions: 1536,
+  distanceMetric: "cosine",
+  hybridAlpha: 0.7, // Dense vs Sparse weight
+  chunkSizeTokens: 512,
+  chunkOverlapTokens: 64,
+};`,
+    followUpText: "How do you prevent latency spikes during high-throughput re-ranking with Cross-Encoders?",
+  },
+  4: {
+    id: 4,
+    title: "Model Context Protocol (MCP) Tools",
+    topic: "MCP",
+    difficulty: "Hard",
+    questionText:
+      "Explain how Model Context Protocol (MCP) standardizes context retrieval and tool execution between AI hosts and local development environments.",
+    codeContext: `// MCP Server Handler Definition
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: [{ name: "run_query", description: "Execute SQL Query" }]
+}));`,
+    followUpText: "What security measures do you put in place when exposing local file system tools to LLM agents?",
+  },
+};
 
 const Interview = () => {
   const navigate = useNavigate();
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 text-center">
-      <Logo />
-      <div className="max-w-xl bg-slate-900/60 backdrop-blur-2xl border border-slate-800/80 rounded-3xl p-8 shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-3">
-          Interview Session
-        </h1>
-        <p className="text-slate-400 text-sm mb-8">
-          Your AI interviewer is ready. Complete your answers below.
-        </p>
+  const [currentQuestionId, setCurrentQuestionId] = useState(3);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => navigate("/setup")}
-            className="px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 text-slate-200 font-medium hover:bg-slate-800 transition cursor-pointer text-sm"
-          >
-            ← Back to Setup
-          </button>
+  const activeQuestion = questionsData[currentQuestionId] || questionsData[3];
+
+  const handleSubmitAnswer = (answerText) => {
+    setIsSubmitting(true);
+    setIsThinking(true);
+
+    // Simulate AI thinking and advancing to next step after brief delay
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsThinking(false);
+      if (currentQuestionId < 4) {
+        setCurrentQuestionId((prev) => prev + 1);
+      }
+    }, 1200);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
+      {/* Top Header Bar */}
+      <header className="h-16 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          <Logo />
+          <div className="hidden sm:flex items-center gap-2 pl-4 border-l border-slate-800">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-medium text-slate-300">
+              Live Session: AI Engineer
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/report")}
-            className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/20 cursor-pointer text-sm"
+            className="py-1.5 px-4 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 transition shadow-md shadow-indigo-600/20 cursor-pointer flex items-center gap-1.5"
           >
-            Finish & View Report →
+            <span>Finish Interview</span>
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
           </button>
         </div>
-      </div>
+      </header>
+
+      {/* Main Content Area - 3 Column Layout */}
+      <main className="flex-1 p-4 sm:p-6 max-w-[1600px] w-full mx-auto flex flex-col lg:flex-row gap-6 overflow-x-hidden">
+        {/* Left Column - Progress & Candidate Info */}
+        <ProgressSidebar
+          candidateName="Alex Rivera"
+          role="AI Engineer"
+          difficulty="Medium"
+          currentQuestionId={currentQuestionId}
+          onSelectQuestion={(id) => questionsData[id] && setCurrentQuestionId(id)}
+          onFinishEarly={() => navigate("/report")}
+        />
+
+        {/* Center Column - AI Question & Workspace Answer Input */}
+        <section className="flex-1 flex flex-col gap-6 min-w-0">
+          <QuestionCard
+            questionNumber={activeQuestion.id}
+            topic={activeQuestion.topic}
+            difficulty={activeQuestion.difficulty}
+            questionTitle={activeQuestion.title}
+            questionText={activeQuestion.questionText}
+            codeContext={activeQuestion.codeContext}
+            isThinking={isThinking}
+            followUpText={activeQuestion.followUpText}
+          />
+
+          <AnswerInput
+            onSubmitAnswer={handleSubmitAnswer}
+            isSubmitting={isSubmitting}
+          />
+        </section>
+
+        {/* Right Column - Live AI Evaluation Panel */}
+        <EvaluationPanel overallScore={87} />
+      </main>
     </div>
   );
 };

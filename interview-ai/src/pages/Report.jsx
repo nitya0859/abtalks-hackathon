@@ -1,35 +1,65 @@
-import { useNavigate } from "react-router-dom";
 import Logo from "../components/common/Logo";
+import OverallScoreCard from "../components/report/OverallScoreCard";
+import PerformanceChart from "../components/report/PerformanceChart";
+import TopicCard from "../components/report/TopicCard";
+import StrengthCard from "../components/report/StrengthCard";
+import WeaknessCard from "../components/report/WeaknessCard";
+import TimelineCard from "../components/report/TimelineCard";
+import LearningRoadmap from "../components/report/LearningRoadmap";
+import SummaryCard from "../components/report/SummaryCard";
+import ActionButtons from "../components/report/ActionButtons";
 
 const Report = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 text-center">
-      <Logo />
-      <div className="max-w-xl bg-slate-900/60 backdrop-blur-2xl border border-slate-800/80 rounded-3xl p-8 shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-3">
-          Interview Report
-        </h1>
-        <p className="text-slate-400 text-sm mb-8">
-          Detailed performance breakdown and feedback summary.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => navigate("/")}
-            className="px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 text-slate-200 font-medium hover:bg-slate-800 transition cursor-pointer text-sm"
-          >
-            Home
-          </button>
-          <button
-            onClick={() => navigate("/setup")}
-            className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/20 cursor-pointer text-sm"
-          >
-            Start New Interview
-          </button>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-purple-500/30 selection:text-purple-200">
+      {/* Top Bar Header */}
+      <header className="h-16 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-50">
+        <Logo />
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs font-semibold text-slate-300">
+            Assessment Report Ready
+          </span>
         </div>
-      </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="flex-1 p-4 sm:p-8 max-w-[1400px] w-full mx-auto space-y-8 my-4">
+        {/* Top Section: Overall Score & Hiring Recommendation */}
+        <OverallScoreCard
+          score={87}
+          recommendation="Strong Hire"
+          candidateName="Alex Rivera"
+          role="AI Engineer"
+          date="August 8, 2026"
+        />
+
+        {/* Section 1: Executive Summary */}
+        <SummaryCard
+          summaryText="You demonstrated strong architectural reasoning and system design skills. Your understanding of retrieval systems and vector databases is solid, but deployment strategies require additional practice."
+        />
+
+        {/* Section 2: Performance Summary Chart */}
+        <PerformanceChart />
+
+        {/* Section 3 & 4: Strengths & Areas to Improve Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StrengthCard />
+          <WeaknessCard />
+        </div>
+
+        {/* Section 5: Topic Breakdown */}
+        <TopicCard />
+
+        {/* Section 6: AI Interview Timeline */}
+        <TimelineCard />
+
+        {/* Section 7: Learning Roadmap */}
+        <LearningRoadmap />
+
+        {/* Bottom Actions */}
+        <ActionButtons />
+      </main>
     </div>
   );
 };

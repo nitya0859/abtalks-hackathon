@@ -15,7 +15,7 @@ const ProgressSidebar = ({
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
   return (
-    <aside className="w-full lg:w-[22%] flex-shrink-0 flex flex-col gap-4">
+    <aside className="w-full lg:w-[24%] xl:w-[22%] flex-shrink-0 flex flex-col md:grid md:grid-cols-2 lg:flex lg:flex-col gap-4">
       {/* Candidate Profile Card */}
       <CandidateCard name={candidateName} role={role} difficulty={difficulty} />
 
@@ -27,7 +27,7 @@ const ProgressSidebar = ({
 
         <div className="flex items-center gap-4">
           {/* SVG Progress Ring */}
-          <div className="relative w-20 h-20 flex items-center justify-center flex-shrink-0">
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
               <circle
                 cx="40"
@@ -50,14 +50,14 @@ const ProgressSidebar = ({
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-sm font-bold text-white leading-none">
+              <span className="text-xs sm:text-sm font-bold text-white leading-none">
                 {progressPercent}%
               </span>
             </div>
           </div>
 
           <div>
-            <span className="text-sm font-semibold text-white block">
+            <span className="text-xs sm:text-sm font-semibold text-white block">
               Question {currentQuestion} of {totalQuestions}
             </span>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -68,12 +68,14 @@ const ProgressSidebar = ({
       </div>
 
       {/* Topic Timeline */}
-      <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 shadow-xl">
+      <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 shadow-xl md:col-span-2 lg:col-span-1">
         <TopicTimeline />
       </div>
 
       {/* Timer Card */}
-      <TimerCard initialSeconds={1200} />
+      <div className="md:col-span-2 lg:col-span-1">
+        <TimerCard initialSeconds={1200} />
+      </div>
     </aside>
   );
 };

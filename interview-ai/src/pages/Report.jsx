@@ -11,9 +11,9 @@ import ActionButtons from "../components/report/ActionButtons";
 
 const Report = () => {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-purple-500/30 selection:text-purple-200">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-purple-500/30 selection:text-purple-200 overflow-x-hidden">
       {/* Top Bar Header */}
-      <header className="h-16 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-50">
+      <header className="h-16 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 md:px-8 flex items-center justify-between sticky top-0 z-50">
         <Logo />
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -24,7 +24,7 @@ const Report = () => {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 p-4 sm:p-8 max-w-[1400px] w-full mx-auto space-y-8 my-4">
+      <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-[1400px] w-full mx-auto space-y-6 sm:space-y-8 my-2 sm:my-4">
         {/* Top Section: Overall Score & Hiring Recommendation */}
         <OverallScoreCard
           score={87}

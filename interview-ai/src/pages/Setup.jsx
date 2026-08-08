@@ -33,31 +33,29 @@ const Setup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Subtle Background Glows & Grids */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/10 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[400px] h-[300px] bg-violet-600/10 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-x-hidden selection:bg-purple-500/30 selection:text-purple-200">
+      {/* Subtle Background Glows */}
+      <div className="hidden sm:block absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-600/10 blur-[130px] rounded-full pointer-events-none" />
 
       {/* Main Container */}
-      <div className="w-full max-w-xl relative z-10 my-auto">
+      <div className="w-full max-w-md md:max-w-2xl relative z-10 my-auto py-6">
         {/* Project Logo / Brand */}
         <Logo />
 
         {/* Glassmorphism Card */}
-        <div className="bg-slate-900/60 backdrop-blur-2xl border border-slate-800/80 rounded-3xl p-6 sm:p-9 shadow-2xl shadow-slate-950/80">
+        <div className="bg-slate-900/60 backdrop-blur-2xl border border-slate-800/80 rounded-3xl p-5 sm:p-8 shadow-2xl">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1.5">
               Setup Your Interview
             </h1>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-400 text-xs sm:text-sm">
               Configure your interview before you begin.
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleStartInterview} className="space-y-6">
+          <form onSubmit={handleStartInterview} className="space-y-5 sm:space-y-6">
             {/* Candidate Name */}
             <CandidateInput value={candidateName} onChange={setCandidateName} />
 
@@ -77,10 +75,10 @@ const Setup = () => {
             />
 
             {/* Estimated Duration */}
-            <div className="flex items-center justify-between p-3.5 bg-slate-950/40 border border-slate-800/60 rounded-xl text-xs">
+            <div className="flex flex-row items-center justify-between p-3.5 bg-slate-950/40 border border-slate-800/60 rounded-xl text-xs gap-2">
               <div className="flex items-center gap-2 text-slate-400">
                 <svg
-                  className="w-4 h-4 text-indigo-400"
+                  className="w-4 h-4 text-purple-400 flex-shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -94,7 +92,7 @@ const Setup = () => {
                 </svg>
                 <span>Estimated Duration</span>
               </div>
-              <span className="font-semibold text-slate-200">
+              <span className="font-semibold text-slate-200 text-right">
                 Approximately 20 minutes
               </span>
             </div>
@@ -102,7 +100,7 @@ const Setup = () => {
             {/* Primary Button */}
             <button
               type="submit"
-              className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 group"
+              className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/30 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 group"
             >
               <span>Start Interview</span>
               <svg

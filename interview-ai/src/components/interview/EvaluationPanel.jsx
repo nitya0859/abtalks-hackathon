@@ -10,7 +10,7 @@ const evaluationMetrics = [
 
 const EvaluationPanel = () => {
   return (
-    <aside className="w-full lg:w-[25%] flex-shrink-0 flex flex-col gap-4">
+    <aside className="w-full lg:w-[26%] xl:w-[25%] flex-shrink-0 flex flex-col md:grid md:grid-cols-2 lg:flex lg:flex-col gap-4">
       {/* Live Evaluation Card */}
       <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
         <div className="flex items-center justify-between">

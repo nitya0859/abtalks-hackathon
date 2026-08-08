@@ -8,7 +8,7 @@ const timelineQuestions = [
 
 const TimelineCard = () => {
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 shadow-xl space-y-4">
+    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
         <div>
           <h3 className="text-base font-bold text-white tracking-tight">
@@ -18,7 +18,7 @@ const TimelineCard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {timelineQuestions.map((q) => (
           <div
             key={q.id}

@@ -11,20 +11,14 @@ import { generateInterviewReport } from "../utils/reportGenerator";
 const InterviewContext = createContext(null);
 
 const DEFAULT_SCORES = {
-  accuracy: 85,
-  reasoning: 88,
-  communication: 80,
-  problemSolving: 84,
-  confidence: 86,
+  accuracy: 0,
+  reasoning: 0,
+  communication: 0,
+  problemSolving: 0,
+  confidence: 0,
 };
 
-const INITIAL_NOTES = [
-  {
-    id: 1,
-    type: "success",
-    text: "Candidate initialized interview session",
-  },
-];
+const INITIAL_NOTES = [];
 
 export const InterviewProvider = ({ children }) => {
   // ============================================================
@@ -32,7 +26,6 @@ export const InterviewProvider = ({ children }) => {
   // ============================================================
 
   const [candidateName, setCandidateName] = useState("");
-
   const [educationLevel, setEducationLevel] = useState("");
   const [degree, setDegree] = useState("");
   const [fieldOfStudy, setFieldOfStudy] = useState("");
@@ -45,7 +38,6 @@ export const InterviewProvider = ({ children }) => {
 
   const [role, setRole] = useState("");
   const [customRole, setCustomRole] = useState("");
-
   const [difficulty, setDifficulty] = useState("Medium");
 
   const [selectedTopics, setSelectedTopics] = useState([]);
@@ -73,20 +65,20 @@ export const InterviewProvider = ({ children }) => {
   const [isThinking, setIsThinking] = useState(false);
 
   // ============================================================
-  // EVALUATION STATE
+  // EVALUATION
   // ============================================================
 
   const [liveScores, setLiveScores] =
     useState(DEFAULT_SCORES);
 
   const [scoreHistory, setScoreHistory] =
-    useState([DEFAULT_SCORES]);
+    useState([]);
 
   const [interviewNotes, setInterviewNotes] =
     useState(INITIAL_NOTES);
 
   // ============================================================
-  // TIMER STATE
+  // TIMER
   // ============================================================
 
   const [timeRemaining, setTimeRemaining] =
@@ -109,6 +101,23 @@ export const InterviewProvider = ({ children }) => {
     interviewQuestions[0];
 
   // ============================================================
+  // DERIVED DATA
+  // ============================================================
+
+  const effectiveRole =
+    role === "Other"
+      ? customRole
+      : role;
+
+  const allSelectedSkills = [
+    ...selectedTopics,
+    ...customSkills,
+  ];
+
+  const hasEvaluation =
+    Object.keys(answers).length > 0;
+
+  // ============================================================
   // TIMER
   // ============================================================
 
@@ -125,10 +134,8 @@ export const InterviewProvider = ({ children }) => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-
           setIsTimerRunning(false);
           setInterviewCompleted(true);
-
           return 0;
         }
 
@@ -166,50 +173,34 @@ export const InterviewProvider = ({ children }) => {
     interviewType: selectedInterviewType,
     customInterviewPrompt: selectedCustomPrompt,
   }) => {
-    // ----------------------------------------------------------
-    // Candidate profile
-    // ----------------------------------------------------------
+    const resolvedRole =
+      selectedRole === "Other"
+        ? selectedCustomRole?.trim()
+        : selectedRole;
 
+    // Candidate
     setCandidateName(name?.trim() || "");
-
-    setEducationLevel(
-      selectedEducationLevel || ""
-    );
-
+    setEducationLevel(selectedEducationLevel || "");
     setDegree(selectedDegree || "");
+    setFieldOfStudy(selectedFieldOfStudy || "");
+    setInstitution(selectedInstitution?.trim() || "");
+    setGraduationYear(selectedGraduationYear || "");
 
-    setFieldOfStudy(
-      selectedFieldOfStudy || ""
-    );
-
-    setInstitution(
-      selectedInstitution?.trim() || ""
-    );
-
-    setGraduationYear(
-      selectedGraduationYear || ""
-    );
-
-    // ----------------------------------------------------------
-    // Interview configuration
-    // ----------------------------------------------------------
-
+    // Configuration
     setRole(selectedRole || "");
-
-    setCustomRole(
-      selectedCustomRole?.trim() || ""
-    );
-
-    setDifficulty(
-      selectedDifficulty || "Medium"
-    );
+    setCustomRole(selectedCustomRole?.trim() || "");
+    setDifficulty(selectedDifficulty || "Medium");
 
     setSelectedTopics(
-      Array.isArray(topics) ? topics : []
+      Array.isArray(topics)
+        ? topics
+        : []
     );
 
     setCustomSkills(
-      Array.isArray(skills) ? skills : []
+      Array.isArray(skills)
+        ? skills
+        : []
     );
 
     setInterviewType(
@@ -220,143 +211,199 @@ export const InterviewProvider = ({ children }) => {
       selectedCustomPrompt?.trim() || ""
     );
 
-    // ----------------------------------------------------------
-    // Reset interview state
-    // ----------------------------------------------------------
-
+    // Interview
     setCurrentQuestionIndex(0);
-
     setAnswers({});
     setFollowUpAnswers({});
-
     setIsFollowUpPhase(false);
     setIsThinking(false);
 
-    // ----------------------------------------------------------
-    // Reset evaluation
-    // ----------------------------------------------------------
-
+    // Evaluation starts empty
     setLiveScores(DEFAULT_SCORES);
-    setScoreHistory([DEFAULT_SCORES]);
+    setScoreHistory([]);
+    setInterviewNotes([]);
 
-    setInterviewNotes([
-      {
-        id: Date.now(),
-        type: "success",
-        text: `Session configured for ${
-          name?.trim() || "candidate"
-        } (${selectedRole || "technical role"})`,
-      },
-    ]);
-
-    // ----------------------------------------------------------
-    // Reset timer
-    // ----------------------------------------------------------
-
+    // Timer
     setTimeRemaining(1200);
     setIsTimerRunning(true);
-
     setInterviewCompleted(false);
+
+    console.log(
+      `Interview started for ${name} - ${resolvedRole}`
+    );
   };
 
   // ============================================================
-  // MOCK EVALUATION
-  //
-  // This is intentionally local for now.
-  // Gemini / backend evaluation can replace this later.
+  // EVALUATION
   // ============================================================
 
   const generateMockScoresAndNotes = (
     questionObj,
-    answerLength
+    answerText
   ) => {
-    const delta = (value) =>
-      Math.min(
-        98,
-        Math.max(
-          70,
-          value + Math.floor(Math.random() * 9) - 4
+    const answer =
+      answerText?.toLowerCase().trim() || "";
+
+    const concepts =
+      questionObj.expectedConcepts || [];
+
+    const matchedConcepts =
+      concepts.filter((concept) =>
+        answer.includes(
+          concept.toLowerCase()
         )
       );
 
+    const conceptCoverage =
+      concepts.length > 0
+        ? matchedConcepts.length /
+          concepts.length
+        : 0;
+
+    const answerLength =
+      answer.length;
+
+    // ----------------------------------------------------------
+    // Communication
+    // ----------------------------------------------------------
+
+    let communication;
+
+    if (answerLength < 30) {
+      communication = 25;
+    } else if (answerLength < 80) {
+      communication = 45;
+    } else if (answerLength < 150) {
+      communication = 65;
+    } else if (answerLength < 300) {
+      communication = 80;
+    } else {
+      communication = 90;
+    }
+
+    // ----------------------------------------------------------
+    // Accuracy
+    // ----------------------------------------------------------
+
+    const accuracy = Math.round(
+      25 + conceptCoverage * 70
+    );
+
+    // ----------------------------------------------------------
+    // Reasoning
+    // ----------------------------------------------------------
+
+    const hasReasoning =
+      answer.includes("because") ||
+      answer.includes("trade-off") ||
+      answer.includes("tradeoff") ||
+      answer.includes("therefore") ||
+      answer.includes("however") ||
+      answer.includes("since");
+
+    const reasoning = Math.round(
+      30 +
+        conceptCoverage * 50 +
+        (hasReasoning ? 15 : 0)
+    );
+
+    // ----------------------------------------------------------
+    // Problem Solving
+    // ----------------------------------------------------------
+
+    const hasProblemSolving =
+      answer.includes("alternative") ||
+      answer.includes("edge case") ||
+      answer.includes("scale") ||
+      answer.includes("performance") ||
+      answer.includes("complexity") ||
+      answer.includes("latency");
+
+    const problemSolving = Math.round(
+      30 +
+        conceptCoverage * 50 +
+        (hasProblemSolving ? 15 : 0)
+    );
+
+    // ----------------------------------------------------------
+    // Confidence
+    // ----------------------------------------------------------
+
+    const confidence = Math.round(
+      35 +
+        conceptCoverage * 40 +
+        (answerLength >= 120 ? 15 : 0) +
+        (hasReasoning ? 10 : 0)
+    );
+
     const newScores = {
-      accuracy: delta(liveScores.accuracy),
-
-      reasoning: delta(liveScores.reasoning),
-
-      communication: Math.min(
-        96,
-        Math.max(
-          72,
-          liveScores.communication +
-            (answerLength > 150 ? 3 : -2)
-        )
-      ),
-
-      problemSolving: delta(
-        liveScores.problemSolving
-      ),
-
-      confidence: delta(
-        liveScores.confidence
-      ),
+      accuracy: Math.min(100, accuracy),
+      reasoning: Math.min(100, reasoning),
+      communication: Math.min(100, communication),
+      problemSolving: Math.min(100, problemSolving),
+      confidence: Math.min(100, confidence),
     };
 
-    const notesPool = [
-      {
+    // ----------------------------------------------------------
+    // Dynamic note
+    // ----------------------------------------------------------
+
+    let note;
+
+    if (
+      conceptCoverage >= 0.7
+    ) {
+      note = {
         type: "success",
-        text: `Strong explanation of ${
-          questionObj.expectedConcepts?.[0] ||
-          "core concepts"
-        }`,
-      },
+        text: `Strong coverage of ${
+          matchedConcepts
+            .slice(0, 2)
+            .join(" and ")
+        }.`,
+      };
+    } else if (
+      conceptCoverage >= 0.35
+    ) {
+      const missingConcepts =
+        concepts.filter(
+          (concept) =>
+            !matchedConcepts.includes(
+              concept
+            )
+        );
 
-      {
-        type: "success",
-        text: `Good reasoning for ${questionObj.topic}`,
-      },
-
-      {
+      note = {
         type: "warning",
-        text: `Could explain ${
-          questionObj.expectedConcepts?.[1] ||
-          "trade-offs"
-        } in more detail`,
-      },
-
-      {
+        text: `Partial coverage. Consider explaining ${
+          missingConcepts
+            .slice(0, 2)
+            .join(" and ") ||
+          "the remaining technical trade-offs"
+        }.`,
+      };
+    } else {
+      note = {
         type: "warning",
-        text: `Consider discussing edge cases in ${questionObj.topic}`,
-      },
-    ];
-
-    const randomNote =
-      notesPool[
-        Math.floor(
-          Math.random() * notesPool.length
-        )
-      ];
+        text: `The response did not clearly address the core concepts expected for ${questionObj.topic}.`,
+      };
+    }
 
     return {
       newScores,
+
       newNoteObj: {
-        id: Date.now() + Math.random(),
-        type: randomNote.type,
-        text: randomNote.text,
+        id:
+          Date.now() +
+          Math.random(),
+
+        type: note.type,
+        text: note.text,
       },
     };
   };
 
   // ============================================================
   // SUBMIT MAIN ANSWER
-  //
-  // Flow:
-  //
-  // Answer
-  //   ↓
-  // Thinking
-  //   ↓
-  // Follow-up
   // ============================================================
 
   const submitAnswer = (answerText) => {
@@ -367,33 +414,26 @@ export const InterviewProvider = ({ children }) => {
       return;
     }
 
-    // Start AI analysis
     setIsThinking(true);
-
-    // Explicitly hide follow-up during analysis
     setIsFollowUpPhase(false);
 
     setTimeout(() => {
-      // --------------------------------------------------------
       // Save answer
-      // --------------------------------------------------------
-
       setAnswers((prev) => ({
         ...prev,
-        [currentQuestion.id]: answerText,
+        [currentQuestion.id]:
+          answerText.trim(),
       }));
 
-      // --------------------------------------------------------
-      // Generate mock evaluation
-      // --------------------------------------------------------
-
+      // Evaluate answer
       const {
         newScores,
         newNoteObj,
-      } = generateMockScoresAndNotes(
-        currentQuestion,
-        answerText.length
-      );
+      } =
+        generateMockScoresAndNotes(
+          currentQuestion,
+          answerText
+        );
 
       setLiveScores(newScores);
 
@@ -407,31 +447,13 @@ export const InterviewProvider = ({ children }) => {
         ...prev,
       ]);
 
-      // --------------------------------------------------------
-      // Analysis finished
-      // --------------------------------------------------------
-
       setIsThinking(false);
-
-      // Now show follow-up
       setIsFollowUpPhase(true);
     }, 1200);
   };
 
   // ============================================================
   // SUBMIT FOLLOW-UP
-  //
-  // Flow:
-  //
-  // Follow-up
-  //   ↓
-  // Save answer
-  //   ↓
-  // Next question
-  //
-  // Final question:
-  //   ↓
-  // Finish interview
   // ============================================================
 
   const submitFollowUp = (
@@ -440,14 +462,13 @@ export const InterviewProvider = ({ children }) => {
     if (followUpText.trim()) {
       setFollowUpAnswers((prev) => ({
         ...prev,
-        [currentQuestion.id]: followUpText,
+        [currentQuestion.id]:
+          followUpText.trim(),
       }));
     }
 
-    // Hide follow-up
     setIsFollowUpPhase(false);
 
-    // Final question
     if (
       currentQuestionIndex >=
       totalQuestions - 1
@@ -456,7 +477,6 @@ export const InterviewProvider = ({ children }) => {
       return;
     }
 
-    // Move to next question
     setCurrentQuestionIndex(
       (prev) => prev + 1
     );
@@ -472,43 +492,36 @@ export const InterviewProvider = ({ children }) => {
       index < totalQuestions
     ) {
       setCurrentQuestionIndex(index);
-
       setIsFollowUpPhase(false);
       setIsThinking(false);
     }
   };
 
   // ============================================================
-  // FINISH INTERVIEW
+  // FINISH
   // ============================================================
 
   const finishInterview = () => {
     setIsTimerRunning(false);
-
     setIsThinking(false);
     setIsFollowUpPhase(false);
-
     setInterviewCompleted(true);
   };
 
   // ============================================================
-  // RESET INTERVIEW
+  // RESET
   // ============================================================
 
   const resetInterview = () => {
-    // Candidate profile
     setCandidateName("");
-
     setEducationLevel("");
     setDegree("");
     setFieldOfStudy("");
     setInstitution("");
     setGraduationYear("");
 
-    // Interview configuration
     setRole("");
     setCustomRole("");
-
     setDifficulty("Medium");
 
     setSelectedTopics([]);
@@ -517,7 +530,6 @@ export const InterviewProvider = ({ children }) => {
     setInterviewType("recommended");
     setCustomInterviewPrompt("");
 
-    // Interview state
     setCurrentQuestionIndex(0);
 
     setAnswers({});
@@ -526,15 +538,11 @@ export const InterviewProvider = ({ children }) => {
     setIsFollowUpPhase(false);
     setIsThinking(false);
 
-    // Evaluation
     setLiveScores(DEFAULT_SCORES);
-    setScoreHistory([DEFAULT_SCORES]);
+    setScoreHistory([]);
+    setInterviewNotes([]);
 
-    setInterviewNotes(INITIAL_NOTES);
-
-    // Timer
     setTimeRemaining(1200);
-
     setIsTimerRunning(false);
 
     setInterviewCompleted(false);
@@ -547,7 +555,7 @@ export const InterviewProvider = ({ children }) => {
   const getReport = () => {
     return generateInterviewReport({
       candidateName,
-      role,
+      role: effectiveRole,
       difficulty,
       liveScores,
       scoreHistory,
@@ -559,78 +567,54 @@ export const InterviewProvider = ({ children }) => {
   };
 
   // ============================================================
-  // CONTEXT PROVIDER
+  // PROVIDER
   // ============================================================
 
   return (
     <InterviewContext.Provider
       value={{
-        // ------------------------------------------------------
-        // Candidate profile
-        // ------------------------------------------------------
-
+        // Candidate
         candidateName,
-
         educationLevel,
         degree,
         fieldOfStudy,
         institution,
         graduationYear,
 
-        // ------------------------------------------------------
-        // Interview configuration
-        // ------------------------------------------------------
-
+        // Configuration
         role,
         customRole,
-
+        effectiveRole,
         difficulty,
-
         selectedTopics,
         customSkills,
-
+        allSelectedSkills,
         interviewType,
         customInterviewPrompt,
 
-        // ------------------------------------------------------
-        // Interview state
-        // ------------------------------------------------------
-
+        // Interview
         currentQuestionIndex,
         totalQuestions,
         currentQuestion,
-
         answers,
         followUpAnswers,
-
         isFollowUpPhase,
         isThinking,
 
-        // ------------------------------------------------------
         // Evaluation
-        // ------------------------------------------------------
-
         liveScores,
         scoreHistory,
         interviewNotes,
+        hasEvaluation,
 
-        // ------------------------------------------------------
         // Timer
-        // ------------------------------------------------------
-
         timeRemaining,
         isTimerRunning,
 
-        // ------------------------------------------------------
         // Completion
-        // ------------------------------------------------------
-
         interviewCompleted,
 
-        // ------------------------------------------------------
         // Actions
-        // ------------------------------------------------------
-
         setupInterview,
         submitAnswer,
         submitFollowUp,
@@ -650,9 +634,8 @@ export const InterviewProvider = ({ children }) => {
 // ============================================================
 
 export const useInterview = () => {
-  const context = useContext(
-    InterviewContext
-  );
+  const context =
+    useContext(InterviewContext);
 
   if (!context) {
     throw new Error(

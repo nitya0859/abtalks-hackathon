@@ -14,7 +14,7 @@ const Interview = () => {
 
   const {
     candidateName,
-    role,
+    effectiveRole,
     difficulty,
     currentQuestion,
     currentQuestionIndex,
@@ -24,40 +24,52 @@ const Interview = () => {
     finishInterview,
   } = useInterview();
 
-  // Navigate to report after interview is completed
+  // ============================================================
+  // REDIRECT TO REPORT
+  // ============================================================
+
   useEffect(() => {
     if (interviewCompleted) {
       navigate("/report");
     }
   }, [interviewCompleted, navigate]);
 
-  // Finish interview manually
+  // ============================================================
+  // FINISH INTERVIEW
+  // ============================================================
+
   const handleFinishInterview = () => {
     finishInterview();
-    navigate("/report");
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+  // ============================================================
+  // RENDER
+  // ============================================================
 
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* =========================
           TOP NAVIGATION
       ========================== */}
-      <header className="h-[72px] flex items-center justify-between px-4 sm:px-6 border-b border-slate-800/70 bg-slate-950/90 backdrop-blur-xl">
 
+      <header className="h-[72px] flex items-center justify-between px-4 sm:px-6 border-b border-slate-800/70 bg-slate-950/90 backdrop-blur-xl">
         {/* Logo */}
+
         <Logo />
 
         {/* Live Session Indicator */}
+
         <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
           <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
 
           <span>
-            Live Session: {role} Interview
+            Live Session:{" "}
+            {effectiveRole || "Technical"} Interview
           </span>
         </div>
 
         {/* Finish Interview */}
+
         <button
           onClick={handleFinishInterview}
           className="py-2 px-4 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-md shadow-purple-900/30 cursor-pointer"
@@ -69,14 +81,15 @@ const Interview = () => {
       {/* =========================
           MAIN INTERVIEW LAYOUT
       ========================== */}
-      <main className="flex-1 p-4 sm:p-6 max-w-[1700px] w-full mx-auto flex flex-col lg:flex-row gap-6">
 
+      <main className="flex-1 p-4 sm:p-6 max-w-[1700px] w-full mx-auto flex flex-col lg:flex-row gap-6">
         {/* =========================
             LEFT SIDEBAR
         ========================== */}
+
         <ProgressSidebar
           candidateName={candidateName}
-          role={role}
+          role={effectiveRole}
           difficulty={difficulty}
           currentQuestion={currentQuestionIndex + 1}
           totalQuestions={totalQuestions}
@@ -85,34 +98,35 @@ const Interview = () => {
         {/* =========================
             CENTER INTERVIEW AREA
         ========================== */}
-        <section className="flex-1 flex flex-col gap-5 min-w-0">
 
+        <section className="flex-1 flex flex-col gap-5 min-w-0">
           {/* Current Question */}
+
           <QuestionCard
-            questionNumber={currentQuestionIndex + 1}
+            questionNumber={
+              currentQuestionIndex + 1
+            }
             topic={currentQuestion.topic}
             difficulty={currentQuestion.difficulty}
             questionText={currentQuestion.question}
           />
 
           {/* Candidate Answer */}
+
           <AnswerBox />
 
-          {/* AI Thinking State
-              Follow-up is handled inside AnswerBox.
-              Therefore ThinkingCard only receives isThinking.
-          */}
+          {/* AI Thinking State */}
+
           <ThinkingCard
             isThinking={isThinking}
           />
-
         </section>
 
         {/* =========================
             RIGHT EVALUATION PANEL
         ========================== */}
-        <EvaluationPanel />
 
+        <EvaluationPanel />
       </main>
     </div>
   );

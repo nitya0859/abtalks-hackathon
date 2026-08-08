@@ -1,172 +1,561 @@
 export const interviewQuestions = [
+  // ============================================================
+  // PYTHON
+  // ============================================================
+
   {
-    id: 1,
-    topic: "Prompt Engineering",
+    id: "python-01",
+    topic: "Python",
+    skills: ["Python", "Programming"],
+    roles: [
+      "AI Engineer",
+      "ML Engineer",
+      "Backend AI Engineer",
+      "Software Engineer",
+    ],
     difficulty: "Easy",
-    title: "Prompt Engineering & Structured Outputs",
+    type: "conceptual",
+
+    title: "Python Data Structures",
+
     question:
-      "How do you enforce deterministic JSON output schemas from LLMs in production applications to prevent downstream parsing failures in automated agent pipelines?",
-    codeContext: `// Target Output Schema
-const OutputSchema = z.object({
-  confidence: z.number().min(0).max(1),
-  reasoning: z.string(),
-  actionItems: z.array(z.string()),
-});`,
+      "You are building a backend service that receives thousands of requests per second. Explain the differences between lists, tuples, sets, and dictionaries in Python. When would you choose each one?",
+
     expectedConcepts: [
-      "JSON Schema Enforcement",
-      "Pydantic / Zod Validation",
-      "Function Calling / Structured Outputs API",
-      "Retry & Fallback Logic",
+      "mutability",
+      "hashing",
+      "lookup complexity",
+      "use cases",
     ],
+
     followUp:
-      "How would you handle cases where the LLM produces valid JSON but hallucinates key schema fields under low temperature?",
+      "Suppose your dictionary contains millions of entries and you frequently need membership checks. What would you consider about memory usage and lookup performance?",
+
+    tags: ["python", "data-structures"],
   },
+
   {
-    id: 2,
-    topic: "RAG Architecture",
+    id: "python-02",
+    topic: "Python",
+    skills: ["Python", "Programming"],
+    roles: [
+      "AI Engineer",
+      "ML Engineer",
+      "Backend AI Engineer",
+      "Software Engineer",
+    ],
     difficulty: "Medium",
-    title: "RAG Architecture & Hybrid Search",
+    type: "problem-solving",
+
+    title: "Python Performance",
+
     question:
-      "Compare Dense Vector Retrieval vs Sparse BM25 Search. When is hybrid search necessary, and how do you calculate and tune the hybrid weighting parameter (alpha)?",
-    codeContext: `// Hybrid Query Scoring Formula
-const hybridScore = (alpha * denseScore) + ((1 - alpha) * bm25Score);
-// Where alpha is typically tuned between 0.6 and 0.8`,
+      "A Python API is becoming slow as the amount of data increases. How would you identify the performance bottleneck before changing the implementation?",
+
     expectedConcepts: [
-      "Dense Embeddings vs Sparse BM25",
-      "Semantic vs Keyword Match",
-      "Reciprocal Rank Fusion (RRF)",
-      "Score Normalization",
+      "profiling",
+      "complexity",
+      "memory",
+      "I/O",
+      "benchmarking",
     ],
+
     followUp:
-      "Can you explain how score normalization (e.g. Min-Max vs Z-Score) impacts hybrid search balance when dense and sparse scores operate on different scales?",
+      "Imagine profiling shows that 80% of the execution time is spent inside a nested loop. What would you investigate next before rewriting the algorithm?",
+
+    tags: ["python", "performance"],
   },
+
+  // ============================================================
+  // RAG
+  // ============================================================
+
   {
-    id: 3,
-    topic: "Vector Database",
+    id: "rag-01",
+    topic: "RAG",
+    skills: ["RAG", "LLM", "AI"],
+    roles: [
+      "AI Engineer",
+      "ML Engineer",
+      "Backend AI Engineer",
+    ],
     difficulty: "Medium",
-    title: "Vector DB Indexing & Quantization",
+    type: "system-design",
+
+    title: "Designing a RAG Pipeline",
+
     question:
-      "How would you optimize indexing, partition strategy, and query latency when scaling a vector database (e.g. Qdrant / Pinecone / pgvector) to over 500 million high-dimensional dense embeddings with real-time updates?",
-    codeContext: `// Vector Store Indexing Parameters
-const indexConfig = {
-  distanceMetric: "cosine",
-  hnswM: 16,             // Max connections per node
-  efConstruction: 128,   // Build search depth
-  quantization: "SQ8",   // Scalar Quantization 8-bit
-};`,
+      "Design a Retrieval-Augmented Generation pipeline for a company that wants an LLM to answer questions using its internal documentation. Walk through the major components and explain why each is needed.",
+
     expectedConcepts: [
-      "HNSW Graphs",
-      "Scalar Quantization (SQ8) & Product Quantization (PQ)",
-      "Sharding & Tenant Partitioning",
-      "Write-Ahead Logging (WAL) & Ingestion Buffers",
+      "chunking",
+      "embeddings",
+      "vector database",
+      "retrieval",
+      "reranking",
+      "generation",
     ],
+
     followUp:
-      "Can you explain why you selected HNSW over IVF indexing for real-time high-throughput update workloads?",
+      "Suppose the system retrieves five documents, but only one actually contains the answer. How would you improve retrieval quality without simply increasing the number of retrieved documents?",
+
+    tags: ["rag", "retrieval", "llm"],
   },
+
   {
-    id: 4,
-    topic: "MCP",
+    id: "rag-02",
+    topic: "RAG",
+    skills: ["RAG", "LLM", "AI"],
+    roles: [
+      "AI Engineer",
+      "ML Engineer",
+    ],
     difficulty: "Hard",
-    title: "Model Context Protocol (MCP) Integration",
+    type: "architecture",
+
+    title: "RAG at Scale",
+
     question:
-      "Explain how Model Context Protocol (MCP) standardizes context retrieval and tool execution between AI hosts and local development environments.",
-    codeContext: `// MCP Server Handler Definition
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [{ 
-    name: "execute_sql", 
-    description: "Run SQL query on local DB",
-    inputSchema: SqlQuerySchema 
-  }]
-}));`,
+      "Your RAG application now has 500 million document embeddings. Design an architecture that keeps retrieval latency low while allowing documents to be updated continuously.",
+
     expectedConcepts: [
-      "JSON-RPC Protocol Specs",
-      "Client-Server Tool Registration",
-      "Sandbox Security & Permissions",
-      "Local Context Discovery",
+      "indexing",
+      "sharding",
+      "partitioning",
+      "approximate nearest neighbor search",
+      "caching",
+      "incremental updates",
     ],
+
     followUp:
-      "What security sandboxing measures do you implement when an MCP tool allows executing shell commands or local file system writes?",
+      "Suppose 80% of queries target documents updated during the last 24 hours. How would you change your architecture to exploit that access pattern?",
+
+    tags: ["rag", "scaling", "vector-search"],
   },
+
+  // ============================================================
+  // VECTOR DATABASES
+  // ============================================================
+
   {
-    id: 5,
-    topic: "LLM Caching",
+    id: "vector-01",
+    topic: "Vector Databases",
+    skills: [
+      "Vector Databases",
+      "RAG",
+      "AI",
+    ],
+    roles: [
+      "AI Engineer",
+      "ML Engineer",
+      "Backend AI Engineer",
+    ],
     difficulty: "Medium",
-    title: "KV Cache & Prompt Prefix Caching",
+    type: "architecture",
+
+    title: "Vector Search",
+
     question:
-      "How does KV Cache acceleration work in Transformer inference, and how do you leverage Prompt Prefix Caching to reduce time-to-first-token (TTFT) and API costs for multi-turn agent conversations?",
-    codeContext: `// Multi-turn System Prompt Caching Structure
-const payload = {
-  system_prompt: [ { type: "text", text: SYSTEM_DOCS, cache_control: { type: "ephemeral" } } ],
-  messages: conversationHistory,
-};`,
+      "Explain how approximate nearest-neighbor search works in a vector database and why it is generally preferred over brute-force comparison at large scale.",
+
     expectedConcepts: [
-      "KV Cache (Key-Value Attention Memory)",
-      "Prefix / Radix Tree Caching",
-      "TTFT Latency Reduction",
-      "Token Cost Optimization",
+      "embeddings",
+      "distance metrics",
+      "ANN",
+      "HNSW",
+      "latency",
+      "recall",
     ],
+
     followUp:
-      "What happens to cache hit rate when system prompts are dynamic or include timestamps per request?",
+      "If you increase the search parameters to improve recall, what trade-offs might you introduce in latency and resource consumption?",
+
+    tags: ["vectors", "ann", "hnsw"],
   },
+
+  // ============================================================
+  // SYSTEM DESIGN
+  // ============================================================
+
   {
-    id: 6,
-    topic: "Agentic Tool Calling",
-    difficulty: "Hard",
-    title: "Agentic ReAct Loop & Error Recovery",
-    question:
-      "Design an autonomous AI agent loop that handles unexpected tool failures (e.g. API timeouts, rate limits, malformed tool arguments) without halting the entire workflow.",
-    codeContext: `// ReAct Loop Exception Handler
-try {
-  const result = font await executeToolCall(toolCall);
-  return result;
-} catch (error) {
-  // How do you format the error back to the LLM?
-}`,
-    expectedConcepts: [
-      "ReAct (Reason + Act) Pattern",
-      "Self-Correction & Exception Feedback",
-      "Exponential Backoff & Rate Limits",
-      "Max Step Guards & Infinite Loop Detection",
-    ],
-    followUp:
-      "How do you prevent an agent from getting trapped in an infinite retry loop when a third-party tool continuously returns a 400 Bad Request?",
-  },
-  {
-    id: 7,
+    id: "system-01",
     topic: "System Design",
-    difficulty: "Hard",
-    title: "System Architecture & High Concurrency",
-    question:
-      "Architect an end-to-end streaming AI platform capable of handling 50,000 concurrent LLM conversations with sub-100ms initial response latency.",
-    codeContext: `// Streaming Gateway Architecture
-Client <-> WebSocket / SSE Gateway <-> Message Queue (Kafka/Redis) <-> Worker Pool (vLLM / TensorRT-LLM)`,
-    expectedConcepts: [
-      "Server-Sent Events (SSE) vs WebSockets",
-      "vLLM & Continuous Batching",
-      "Distributed Rate Limiting & Queues",
-      "Load Balancing & GPU Cluster Scaling",
+    skills: [
+      "System Design",
+      "Backend",
+      "Architecture",
     ],
+    roles: [
+      "AI Engineer",
+      "Backend AI Engineer",
+      "Backend Engineer",
+      "Software Engineer",
+      "Startup Engineer",
+    ],
+    difficulty: "Medium",
+    type: "system-design",
+
+    title: "Scalable API",
+
+    question:
+      "Design a backend API that needs to handle a rapidly growing number of users. Explain how you would approach scalability, reliability, caching, and failure handling.",
+
+    expectedConcepts: [
+      "load balancing",
+      "horizontal scaling",
+      "caching",
+      "database",
+      "queues",
+      "fault tolerance",
+    ],
+
     followUp:
-      "How do you manage memory allocation across GPU nodes when requests have widely varying context window lengths?",
+      "Your service suddenly receives ten times its normal traffic. Which component do you expect to fail first, and how would you protect the rest of the system?",
+
+    tags: ["system-design", "backend"],
   },
+
   {
-    id: 8,
-    topic: "Deployment",
-    difficulty: "Hard",
-    title: "Production Deployment & Continuous Evaluation",
-    question:
-      "How do you establish continuous LLM evaluation (LLM-as-a-Judge + Ragas metrics) in a CI/CD pipeline to prevent regression during model upgrades?",
-    codeContext: `// CI/CD Eval Assertion
-const evalReport = await runEvalSuite({ dataset: "golden_eval_set.json" });
-assert(evalReport.faithfulness >= 0.90);
-assert(evalReport.answerRelevance >= 0.85);`,
-    expectedConcepts: [
-      "Faithfulness & Groundedness Metrics",
-      "LLM-as-a-Judge Evaluation",
-      "Golden Test Sets",
-      "CI/CD Quality Gates & Canary Deployments",
+    id: "system-02",
+    topic: "System Design",
+    skills: [
+      "System Design",
+      "Distributed Systems",
+      "Backend",
     ],
+    roles: [
+      "Backend Engineer",
+      "Backend AI Engineer",
+      "Software Engineer",
+      "AI Engineer",
+    ],
+    difficulty: "Hard",
+    type: "architecture",
+
+    title: "Distributed Architecture",
+
+    question:
+      "Design a distributed service where multiple components process requests asynchronously. How would you handle retries, duplicate messages, failures, and consistency?",
+
+    expectedConcepts: [
+      "message queues",
+      "idempotency",
+      "retries",
+      "dead-letter queues",
+      "eventual consistency",
+    ],
+
     followUp:
-      "How do you mitigate evaluator model bias (e.g. position bias or verbosity bias) when using GPT-4 to judge smaller fine-tuned models?",
+      "If a message is successfully processed but the acknowledgement is lost, how would your system prevent the operation from being performed twice?",
+
+    tags: ["distributed-systems", "architecture"],
+  },
+
+  // ============================================================
+  // REACT
+  // ============================================================
+
+  {
+    id: "react-01",
+    topic: "React",
+    skills: [
+      "React",
+      "JavaScript",
+      "Frontend",
+    ],
+    roles: [
+      "Frontend Engineer",
+      "Full Stack Engineer",
+      "Software Engineer",
+      "Startup Engineer",
+    ],
+    difficulty: "Medium",
+    type: "conceptual",
+
+    title: "React State Management",
+
+    question:
+      "Explain how React state and props differ. When would you use local component state, Context, or another state management solution?",
+
+    expectedConcepts: [
+      "state",
+      "props",
+      "component ownership",
+      "context",
+      "rerendering",
+    ],
+
+    followUp:
+      "Suppose changing one Context value causes hundreds of components to rerender. How would you diagnose and reduce unnecessary renders?",
+
+    tags: ["react", "frontend"],
+  },
+
+  {
+    id: "react-02",
+    topic: "React",
+    skills: [
+      "React",
+      "JavaScript",
+      "Frontend",
+    ],
+    roles: [
+      "Frontend Engineer",
+      "Full Stack Engineer",
+      "Software Engineer",
+    ],
+    difficulty: "Hard",
+    type: "problem-solving",
+
+    title: "React Performance",
+
+    question:
+      "A React application becomes noticeably slow when rendering a large list. Walk through the steps you would take to identify and solve the performance problem.",
+
+    expectedConcepts: [
+      "profiling",
+      "memoization",
+      "virtualization",
+      "keys",
+      "unnecessary renders",
+    ],
+
+    followUp:
+      "If memoization does not improve the performance, what would you investigate next?",
+
+    tags: ["react", "performance"],
+  },
+
+  // ============================================================
+  // DSA
+  // ============================================================
+
+  {
+    id: "dsa-01",
+    topic: "DSA",
+    skills: [
+      "DSA",
+      "Algorithms",
+      "Data Structures",
+    ],
+    roles: [
+      "Software Engineer",
+      "Backend Engineer",
+      "Frontend Engineer",
+      "AI Engineer",
+    ],
+    difficulty: "Medium",
+    type: "problem-solving",
+
+    title: "Hashing",
+
+    question:
+      "Given an array of integers and a target value, explain how you would find two numbers whose sum equals the target. Discuss both a brute-force solution and an optimized approach.",
+
+    expectedConcepts: [
+      "nested loops",
+      "hash map",
+      "time complexity",
+      "space complexity",
+    ],
+
+    followUp:
+      "What changes if the input array is already sorted and you are not allowed to use additional memory proportional to the input size?",
+
+    tags: ["dsa", "hashing", "arrays"],
+  },
+
+  {
+    id: "dsa-02",
+    topic: "DSA",
+    skills: [
+      "DSA",
+      "Algorithms",
+      "Data Structures",
+    ],
+    roles: [
+      "Software Engineer",
+      "Backend Engineer",
+      "AI Engineer",
+    ],
+    difficulty: "Hard",
+    type: "problem-solving",
+
+    title: "Algorithmic Trade-offs",
+
+    question:
+      "You have an algorithm with O(n²) time complexity that works well for small inputs. How would you determine whether optimizing it is actually necessary?",
+
+    expectedConcepts: [
+      "constraints",
+      "benchmarking",
+      "complexity",
+      "input size",
+      "trade-offs",
+    ],
+
+    followUp:
+      "If the input size suddenly grows from 10,000 to 10 million elements, how would the feasibility of your solution change?",
+
+    tags: ["dsa", "complexity"],
+  },
+
+  // ============================================================
+  // MACHINE LEARNING
+  // ============================================================
+
+  {
+    id: "ml-01",
+    topic: "Machine Learning",
+    skills: [
+      "Machine Learning",
+      "ML",
+      "AI",
+    ],
+    roles: [
+      "ML Engineer",
+      "AI Engineer",
+      "Data Scientist",
+    ],
+    difficulty: "Medium",
+    type: "conceptual",
+
+    title: "Overfitting",
+
+    question:
+      "What is overfitting in machine learning? Explain how you would detect it and describe several techniques for reducing it.",
+
+    expectedConcepts: [
+      "training error",
+      "validation error",
+      "regularization",
+      "cross-validation",
+      "data augmentation",
+    ],
+
+    followUp:
+      "Suppose your training accuracy is 99% but validation accuracy is 72%. What experiments would you run to determine the root cause?",
+
+    tags: ["ml", "overfitting"],
+  },
+
+  // ============================================================
+  // DEPLOYMENT
+  // ============================================================
+
+  {
+    id: "deployment-01",
+    topic: "Deployment",
+    skills: [
+      "Deployment",
+      "DevOps",
+      "Cloud",
+    ],
+    roles: [
+      "AI Engineer",
+      "Backend Engineer",
+      "DevOps Engineer",
+      "Startup Engineer",
+    ],
+    difficulty: "Medium",
+    type: "architecture",
+
+    title: "Production Deployment",
+
+    question:
+      "You have developed an AI-powered web application locally. Explain how you would take it from development to production while keeping deployments reliable and reversible.",
+
+    expectedConcepts: [
+      "CI/CD",
+      "containers",
+      "environment variables",
+      "monitoring",
+      "logging",
+      "rollback",
+    ],
+
+    followUp:
+      "A deployment passes all automated tests but causes production latency to double. How would you detect, investigate, and safely roll back the release?",
+
+    tags: ["deployment", "devops"],
+  },
+
+  // ============================================================
+  // AI AGENTS / MCP
+  // ============================================================
+
+  {
+    id: "agents-01",
+    topic: "AI Agents",
+    skills: [
+      "AI Agents",
+      "LLM",
+      "MCP",
+    ],
+    roles: [
+      "AI Engineer",
+      "ML Engineer",
+      "Backend AI Engineer",
+    ],
+    difficulty: "Medium",
+    type: "architecture",
+
+    title: "AI Agent Architecture",
+
+    question:
+      "Design an AI agent that can reason about a task, choose tools, execute actions, and use the results to continue solving the task. What components would you include?",
+
+    expectedConcepts: [
+      "LLM",
+      "tool calling",
+      "planning",
+      "memory",
+      "execution",
+      "feedback",
+    ],
+
+    followUp:
+      "What happens if the agent repeatedly chooses the wrong tool? How would you design safeguards against infinite or incorrect tool usage?",
+
+    tags: ["agents", "llm", "mcp"],
+  },
+
+  // ============================================================
+  // SECURITY
+  // ============================================================
+
+  {
+    id: "security-01",
+    topic: "AI Security",
+    skills: [
+      "AI Security",
+      "LLM",
+      "Cybersecurity",
+    ],
+    roles: [
+      "AI Engineer",
+      "Backend AI Engineer",
+      "Security Engineer",
+    ],
+    difficulty: "Hard",
+    type: "security",
+
+    title: "Prompt Injection",
+
+    question:
+      "An LLM application retrieves untrusted documents before generating an answer. Explain how prompt injection could occur and how you would design the system to reduce the risk.",
+
+    expectedConcepts: [
+      "untrusted input",
+      "instruction hierarchy",
+      "input isolation",
+      "tool permissions",
+      "validation",
+    ],
+
+    followUp:
+      "If an injected instruction attempts to make the model call a privileged tool, what architectural boundary should prevent that action?",
+
+    tags: ["security", "llm", "prompt-injection"],
   },
 ];

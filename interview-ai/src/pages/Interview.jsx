@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { useInterview } from "../context/InterviewContext";
 
 import Logo from "../components/common/Logo";
@@ -15,14 +14,19 @@ const Interview = () => {
 
   const {
     candidateName,
-    role,
+    effectiveRole,
     difficulty,
     currentQuestion,
     currentQuestionIndex,
     totalQuestions,
+    isThinking,
     interviewCompleted,
     finishInterview,
   } = useInterview();
+
+  // ============================================================
+  // REDIRECT TO REPORT
+  // ============================================================
 
   useEffect(() => {
     if (interviewCompleted) {
@@ -30,57 +34,100 @@ const Interview = () => {
     }
   }, [interviewCompleted, navigate]);
 
-  return (
-    <div className="min-h-screen bg-[#060B1F] text-white flex flex-col">
+  // ============================================================
+  // FINISH INTERVIEW
+  // ============================================================
 
-      {/* Top Navigation */}
-      <header className="border-b border-slate-800 px-6 py-4 flex justify-between items-center">
+  const handleFinishInterview = () => {
+    finishInterview();
+  };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      {/* =========================
+          TOP NAVIGATION
+      ========================== */}
+
+      <header className="h-[72px] flex items-center justify-between px-4 sm:px-6 border-b border-slate-800/70 bg-slate-950/90 backdrop-blur-xl">
+        {/* Logo */}
+
         <Logo />
 
-        <div className="text-sm text-slate-400">
-          Live Session: {role} Interview
+        {/* Live Session Indicator */}
+
+        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+
+          <span>
+            Live Session:{" "}
+            {effectiveRole || "Technical"} Interview
+          </span>
         </div>
 
+        {/* Finish Interview */}
+
         <button
-          onClick={finishInterview}
-          className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90"
+          onClick={handleFinishInterview}
+          className="py-2 px-4 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-md shadow-purple-900/30 cursor-pointer"
         >
           Finish Interview
         </button>
       </header>
 
-      <main className="flex-1 p-6 flex flex-col lg:flex-row gap-6">
+      {/* =========================
+          MAIN INTERVIEW LAYOUT
+      ========================== */}
 
-        {/* Left */}
+      <main className="flex-1 p-4 sm:p-6 max-w-[1700px] w-full mx-auto flex flex-col lg:flex-row gap-6">
+        {/* =========================
+            LEFT SIDEBAR
+        ========================== */}
+
         <ProgressSidebar
           candidateName={candidateName}
-          role={role}
+          role={effectiveRole}
           difficulty={difficulty}
           currentQuestion={currentQuestionIndex + 1}
           totalQuestions={totalQuestions}
         />
 
-        {/* Center */}
-        <section className="flex-1 flex flex-col gap-5">
+        {/* =========================
+            CENTER INTERVIEW AREA
+        ========================== */}
+
+        <section className="flex-1 flex flex-col gap-5 min-w-0">
+          {/* Current Question */}
 
           <QuestionCard
-            questionNumber={currentQuestionIndex + 1}
+            questionNumber={
+              currentQuestionIndex + 1
+            }
             topic={currentQuestion.topic}
             difficulty={currentQuestion.difficulty}
             questionText={currentQuestion.question}
           />
 
+          {/* Candidate Answer */}
+
           <AnswerBox />
 
-          <ThinkingCard />
+          {/* AI Thinking State */}
 
+          <ThinkingCard
+            isThinking={isThinking}
+          />
         </section>
 
-        {/* Right */}
+        {/* =========================
+            RIGHT EVALUATION PANEL
+        ========================== */}
+
         <EvaluationPanel />
-
       </main>
-
     </div>
   );
 };

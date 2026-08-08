@@ -1,183 +1,561 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
+
 import { interviewQuestions } from "../data/questions";
 import { generateInterviewReport } from "../utils/reportGenerator";
 
 const InterviewContext = createContext(null);
 
 const DEFAULT_SCORES = {
-  accuracy: 85,
-  reasoning: 88,
-  communication: 80,
-  problemSolving: 84,
-  confidence: 86,
+  accuracy: 0,
+  reasoning: 0,
+  communication: 0,
+  problemSolving: 0,
+  confidence: 0,
 };
 
-const INITIAL_NOTES = [
-  { id: 1, type: "success", text: "Candidate initialized interview session" },
-];
+const INITIAL_NOTES = [];
 
 export const InterviewProvider = ({ children }) => {
-  const [candidateName, setCandidateName] = useState("Alex Rivera");
-  const [role, setRole] = useState("AI Engineer");
-  const [difficulty, setDifficulty] = useState("Medium");
-  const [selectedTopics, setSelectedTopics] = useState([
-    "Prompt Engineering",
-    "RAG",
-    "System Design",
-  ]);
+  // ============================================================
+  // CANDIDATE PROFILE
+  // ============================================================
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [candidateName, setCandidateName] = useState("");
+  const [educationLevel, setEducationLevel] = useState("");
+  const [degree, setDegree] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [institution, setInstitution] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+
+  // ============================================================
+  // INTERVIEW CONFIGURATION
+  // ============================================================
+
+  const [role, setRole] = useState("");
+  const [customRole, setCustomRole] = useState("");
+  const [difficulty, setDifficulty] = useState("Medium");
+
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [customSkills, setCustomSkills] = useState([]);
+
+  const [interviewType, setInterviewType] =
+    useState("recommended");
+
+  const [customInterviewPrompt, setCustomInterviewPrompt] =
+    useState("");
+
+  // ============================================================
+  // INTERVIEW STATE
+  // ============================================================
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] =
+    useState(0);
+
   const [answers, setAnswers] = useState({});
   const [followUpAnswers, setFollowUpAnswers] = useState({});
-  const [isFollowUpPhase, setIsFollowUpPhase] = useState(false);
+
+  const [isFollowUpPhase, setIsFollowUpPhase] =
+    useState(false);
+
   const [isThinking, setIsThinking] = useState(false);
 
-  const [liveScores, setLiveScores] = useState(DEFAULT_SCORES);
-  const [scoreHistory, setScoreHistory] = useState([DEFAULT_SCORES]);
-  const [interviewNotes, setInterviewNotes] = useState(INITIAL_NOTES);
+  // ============================================================
+  // EVALUATION
+  // ============================================================
 
-  const [timeRemaining, setTimeRemaining] = useState(1200); // 20 minutes
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [interviewCompleted, setInterviewCompleted] = useState(false);
+  const [liveScores, setLiveScores] =
+    useState(DEFAULT_SCORES);
+
+  const [scoreHistory, setScoreHistory] =
+    useState([]);
+
+  const [interviewNotes, setInterviewNotes] =
+    useState(INITIAL_NOTES);
+
+  // ============================================================
+  // TIMER
+  // ============================================================
+
+  const [timeRemaining, setTimeRemaining] =
+    useState(1200);
+
+  const [isTimerRunning, setIsTimerRunning] =
+    useState(false);
+
+  const [interviewCompleted, setInterviewCompleted] =
+    useState(false);
+
+  // ============================================================
+  // QUESTION DATA
+  // ============================================================
 
   const totalQuestions = interviewQuestions.length;
-  const currentQuestion = interviewQuestions[currentQuestionIndex] || interviewQuestions[0];
 
-  // Global Countdown Timer
+  const currentQuestion =
+    interviewQuestions[currentQuestionIndex] ||
+    interviewQuestions[0];
+
+  // ============================================================
+  // DERIVED DATA
+  // ============================================================
+
+  const effectiveRole =
+    role === "Other"
+      ? customRole
+      : role;
+
+  const allSelectedSkills = [
+    ...selectedTopics,
+    ...customSkills,
+  ];
+
+  const hasEvaluation =
+    Object.keys(answers).length > 0;
+
+  // ============================================================
+  // TIMER
+  // ============================================================
+
   useEffect(() => {
-    let interval = null;
-    if (isTimerRunning && timeRemaining > 0 && !interviewCompleted) {
-      interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            finishInterview();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (
+      !isTimerRunning ||
+      timeRemaining <= 0 ||
+      interviewCompleted
+    ) {
+      return;
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isTimerRunning, timeRemaining, interviewCompleted]);
 
-  // Setup interview from Setup form
-  const setupInterview = ({ candidateName: name, role: r, difficulty: diff, selectedTopics: topics }) => {
-    setCandidateName(name.trim() || "Alex Rivera");
-    setRole(r || "AI Engineer");
-    setDifficulty(diff || "Medium");
-    setSelectedTopics(topics.length > 0 ? topics : ["Prompt Engineering", "RAG"]);
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsTimerRunning(false);
+          setInterviewCompleted(true);
+          return 0;
+        }
 
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    isTimerRunning,
+    timeRemaining,
+    interviewCompleted,
+  ]);
+
+  // ============================================================
+  // SETUP INTERVIEW
+  // ============================================================
+
+  const setupInterview = ({
+    candidateName: name,
+    educationLevel: selectedEducationLevel,
+    degree: selectedDegree,
+    fieldOfStudy: selectedFieldOfStudy,
+    institution: selectedInstitution,
+    graduationYear: selectedGraduationYear,
+
+    role: selectedRole,
+    customRole: selectedCustomRole,
+
+    difficulty: selectedDifficulty,
+
+    selectedTopics: topics,
+    customSkills: skills,
+
+    interviewType: selectedInterviewType,
+    customInterviewPrompt: selectedCustomPrompt,
+  }) => {
+    const resolvedRole =
+      selectedRole === "Other"
+        ? selectedCustomRole?.trim()
+        : selectedRole;
+
+    // Candidate
+    setCandidateName(name?.trim() || "");
+    setEducationLevel(selectedEducationLevel || "");
+    setDegree(selectedDegree || "");
+    setFieldOfStudy(selectedFieldOfStudy || "");
+    setInstitution(selectedInstitution?.trim() || "");
+    setGraduationYear(selectedGraduationYear || "");
+
+    // Configuration
+    setRole(selectedRole || "");
+    setCustomRole(selectedCustomRole?.trim() || "");
+    setDifficulty(selectedDifficulty || "Medium");
+
+    setSelectedTopics(
+      Array.isArray(topics)
+        ? topics
+        : []
+    );
+
+    setCustomSkills(
+      Array.isArray(skills)
+        ? skills
+        : []
+    );
+
+    setInterviewType(
+      selectedInterviewType || "recommended"
+    );
+
+    setCustomInterviewPrompt(
+      selectedCustomPrompt?.trim() || ""
+    );
+
+    // Interview
     setCurrentQuestionIndex(0);
     setAnswers({});
     setFollowUpAnswers({});
     setIsFollowUpPhase(false);
     setIsThinking(false);
+
+    // Evaluation starts empty
     setLiveScores(DEFAULT_SCORES);
-    setScoreHistory([DEFAULT_SCORES]);
-    setInterviewNotes([
-      { id: Date.now(), type: "success", text: `Session configured for ${name} (${r})` },
-    ]);
+    setScoreHistory([]);
+    setInterviewNotes([]);
+
+    // Timer
     setTimeRemaining(1200);
     setIsTimerRunning(true);
     setInterviewCompleted(false);
+
+    console.log(
+      `Interview started for ${name} - ${resolvedRole}`
+    );
   };
 
-  // Generate dynamic realistic mock score & note updates upon answer submission
-  const generateMockScoresAndNotes = (questionObj, answerLength) => {
-    const delta = (val) => Math.min(98, Math.max(70, val + Math.floor(Math.random() * 9) - 4));
+  // ============================================================
+  // EVALUATION
+  // ============================================================
+
+  const generateMockScoresAndNotes = (
+    questionObj,
+    answerText
+  ) => {
+    const answer =
+      answerText?.toLowerCase().trim() || "";
+
+    const concepts =
+      questionObj.expectedConcepts || [];
+
+    const matchedConcepts =
+      concepts.filter((concept) =>
+        answer.includes(
+          concept.toLowerCase()
+        )
+      );
+
+    const conceptCoverage =
+      concepts.length > 0
+        ? matchedConcepts.length /
+          concepts.length
+        : 0;
+
+    const answerLength =
+      answer.length;
+
+    // ----------------------------------------------------------
+    // Communication
+    // ----------------------------------------------------------
+
+    let communication;
+
+    if (answerLength < 30) {
+      communication = 25;
+    } else if (answerLength < 80) {
+      communication = 45;
+    } else if (answerLength < 150) {
+      communication = 65;
+    } else if (answerLength < 300) {
+      communication = 80;
+    } else {
+      communication = 90;
+    }
+
+    // ----------------------------------------------------------
+    // Accuracy
+    // ----------------------------------------------------------
+
+    const accuracy = Math.round(
+      25 + conceptCoverage * 70
+    );
+
+    // ----------------------------------------------------------
+    // Reasoning
+    // ----------------------------------------------------------
+
+    const hasReasoning =
+      answer.includes("because") ||
+      answer.includes("trade-off") ||
+      answer.includes("tradeoff") ||
+      answer.includes("therefore") ||
+      answer.includes("however") ||
+      answer.includes("since");
+
+    const reasoning = Math.round(
+      30 +
+        conceptCoverage * 50 +
+        (hasReasoning ? 15 : 0)
+    );
+
+    // ----------------------------------------------------------
+    // Problem Solving
+    // ----------------------------------------------------------
+
+    const hasProblemSolving =
+      answer.includes("alternative") ||
+      answer.includes("edge case") ||
+      answer.includes("scale") ||
+      answer.includes("performance") ||
+      answer.includes("complexity") ||
+      answer.includes("latency");
+
+    const problemSolving = Math.round(
+      30 +
+        conceptCoverage * 50 +
+        (hasProblemSolving ? 15 : 0)
+    );
+
+    // ----------------------------------------------------------
+    // Confidence
+    // ----------------------------------------------------------
+
+    const confidence = Math.round(
+      35 +
+        conceptCoverage * 40 +
+        (answerLength >= 120 ? 15 : 0) +
+        (hasReasoning ? 10 : 0)
+    );
 
     const newScores = {
-      accuracy: delta(liveScores.accuracy),
-      reasoning: delta(liveScores.reasoning),
-      communication: Math.min(96, Math.max(72, liveScores.communication + (answerLength > 150 ? 3 : -2))),
-      problemSolving: delta(liveScores.problemSolving),
-      confidence: delta(liveScores.confidence),
+      accuracy: Math.min(100, accuracy),
+      reasoning: Math.min(100, reasoning),
+      communication: Math.min(100, communication),
+      problemSolving: Math.min(100, problemSolving),
+      confidence: Math.min(100, confidence),
     };
 
-    const notesPool = [
-      { type: "success", text: `Strong explanation of ${questionObj.expectedConcepts[0] || "core concepts"}` },
-      { type: "success", text: `Good architectural reasoning for ${questionObj.topic}` },
-      { type: "warning", text: `Missed latency trade-offs during ${questionObj.expectedConcepts[1] || "scaling"}` },
-      { type: "warning", text: `Could detail error fallbacks & edge cases in ${questionObj.topic}` },
-      { type: "success", text: `Clear pseudocode structure and API schema definitions` },
-    ];
+    // ----------------------------------------------------------
+    // Dynamic note
+    // ----------------------------------------------------------
 
-    const randomNote = notesPool[Math.floor(Math.random() * notesPool.length)];
-    const newNoteObj = { id: Date.now() + Math.random(), type: randomNote.type, text: randomNote.text };
+    let note;
 
-    return { newScores, newNoteObj };
+    if (
+      conceptCoverage >= 0.7
+    ) {
+      note = {
+        type: "success",
+        text: `Strong coverage of ${
+          matchedConcepts
+            .slice(0, 2)
+            .join(" and ")
+        }.`,
+      };
+    } else if (
+      conceptCoverage >= 0.35
+    ) {
+      const missingConcepts =
+        concepts.filter(
+          (concept) =>
+            !matchedConcepts.includes(
+              concept
+            )
+        );
+
+      note = {
+        type: "warning",
+        text: `Partial coverage. Consider explaining ${
+          missingConcepts
+            .slice(0, 2)
+            .join(" and ") ||
+          "the remaining technical trade-offs"
+        }.`,
+      };
+    } else {
+      note = {
+        type: "warning",
+        text: `The response did not clearly address the core concepts expected for ${questionObj.topic}.`,
+      };
+    }
+
+    return {
+      newScores,
+
+      newNoteObj: {
+        id:
+          Date.now() +
+          Math.random(),
+
+        type: note.type,
+        text: note.text,
+      },
+    };
   };
 
-  // Candidate submits main answer
+  // ============================================================
+  // SUBMIT MAIN ANSWER
+  // ============================================================
+
   const submitAnswer = (answerText) => {
+    if (
+      !answerText?.trim() ||
+      isThinking
+    ) {
+      return;
+    }
+
     setIsThinking(true);
+    setIsFollowUpPhase(false);
 
     setTimeout(() => {
-      setAnswers((prev) => ({ ...prev, [currentQuestion.id]: answerText }));
+      // Save answer
+      setAnswers((prev) => ({
+        ...prev,
+        [currentQuestion.id]:
+          answerText.trim(),
+      }));
 
-      const { newScores, newNoteObj } = generateMockScoresAndNotes(currentQuestion, answerText.length);
+      // Evaluate answer
+      const {
+        newScores,
+        newNoteObj,
+      } =
+        generateMockScoresAndNotes(
+          currentQuestion,
+          answerText
+        );
+
       setLiveScores(newScores);
-      setScoreHistory((prev) => [...prev, newScores]);
-      setInterviewNotes((prev) => [newNoteObj, ...prev]);
+
+      setScoreHistory((prev) => [
+        ...prev,
+        newScores,
+      ]);
+
+      setInterviewNotes((prev) => [
+        newNoteObj,
+        ...prev,
+      ]);
 
       setIsThinking(false);
-      setIsFollowUpPhase(true); // Enter follow-up probe phase
-    }, 800);
+      setIsFollowUpPhase(true);
+    }, 1200);
   };
 
-  // Candidate submits follow-up response or skips to next question
-  const submitFollowUp = (followUpText = "") => {
+  // ============================================================
+  // SUBMIT FOLLOW-UP
+  // ============================================================
+
+  const submitFollowUp = (
+    followUpText = ""
+  ) => {
     if (followUpText.trim()) {
-      setFollowUpAnswers((prev) => ({ ...prev, [currentQuestion.id]: followUpText }));
+      setFollowUpAnswers((prev) => ({
+        ...prev,
+        [currentQuestion.id]:
+          followUpText.trim(),
+      }));
     }
 
     setIsFollowUpPhase(false);
 
-    // Advance to next question or finish interview if final question reached
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-    } else {
+    if (
+      currentQuestionIndex >=
+      totalQuestions - 1
+    ) {
       finishInterview();
+      return;
     }
+
+    setCurrentQuestionIndex(
+      (prev) => prev + 1
+    );
   };
 
-  // Jump to specific question (e.g. from sidebar step tracker)
+  // ============================================================
+  // JUMP TO QUESTION
+  // ============================================================
+
   const jumpToQuestion = (index) => {
-    if (index >= 0 && index < totalQuestions) {
+    if (
+      index >= 0 &&
+      index < totalQuestions
+    ) {
       setCurrentQuestionIndex(index);
       setIsFollowUpPhase(false);
+      setIsThinking(false);
     }
   };
 
-  // Finish interview and stop timer
+  // ============================================================
+  // FINISH
+  // ============================================================
+
   const finishInterview = () => {
     setIsTimerRunning(false);
+    setIsThinking(false);
+    setIsFollowUpPhase(false);
     setInterviewCompleted(true);
   };
 
-  // Reset interview session
+  // ============================================================
+  // RESET
+  // ============================================================
+
   const resetInterview = () => {
+    setCandidateName("");
+    setEducationLevel("");
+    setDegree("");
+    setFieldOfStudy("");
+    setInstitution("");
+    setGraduationYear("");
+
+    setRole("");
+    setCustomRole("");
+    setDifficulty("Medium");
+
+    setSelectedTopics([]);
+    setCustomSkills([]);
+
+    setInterviewType("recommended");
+    setCustomInterviewPrompt("");
+
     setCurrentQuestionIndex(0);
+
     setAnswers({});
     setFollowUpAnswers({});
+
     setIsFollowUpPhase(false);
     setIsThinking(false);
+
     setLiveScores(DEFAULT_SCORES);
-    setScoreHistory([DEFAULT_SCORES]);
-    setInterviewNotes(INITIAL_NOTES);
+    setScoreHistory([]);
+    setInterviewNotes([]);
+
     setTimeRemaining(1200);
     setIsTimerRunning(false);
+
     setInterviewCompleted(false);
   };
 
-  // Get generated final report
+  // ============================================================
+  // REPORT
+  // ============================================================
+
   const getReport = () => {
     return generateInterviewReport({
       candidateName,
-      role,
+      role: effectiveRole,
       difficulty,
       liveScores,
       scoreHistory,
@@ -188,13 +566,33 @@ export const InterviewProvider = ({ children }) => {
     });
   };
 
+  // ============================================================
+  // PROVIDER
+  // ============================================================
+
   return (
     <InterviewContext.Provider
       value={{
+        // Candidate
         candidateName,
+        educationLevel,
+        degree,
+        fieldOfStudy,
+        institution,
+        graduationYear,
+
+        // Configuration
         role,
+        customRole,
+        effectiveRole,
         difficulty,
         selectedTopics,
+        customSkills,
+        allSelectedSkills,
+        interviewType,
+        customInterviewPrompt,
+
+        // Interview
         currentQuestionIndex,
         totalQuestions,
         currentQuestion,
@@ -202,12 +600,21 @@ export const InterviewProvider = ({ children }) => {
         followUpAnswers,
         isFollowUpPhase,
         isThinking,
+
+        // Evaluation
         liveScores,
         scoreHistory,
         interviewNotes,
+        hasEvaluation,
+
+        // Timer
         timeRemaining,
         isTimerRunning,
+
+        // Completion
         interviewCompleted,
+
+        // Actions
         setupInterview,
         submitAnswer,
         submitFollowUp,
@@ -222,11 +629,20 @@ export const InterviewProvider = ({ children }) => {
   );
 };
 
+// ============================================================
+// CUSTOM HOOK
+// ============================================================
+
 export const useInterview = () => {
-  const context = useContext(InterviewContext);
+  const context =
+    useContext(InterviewContext);
+
   if (!context) {
-    throw new Error("useInterview must be used within an InterviewProvider");
+    throw new Error(
+      "useInterview must be used within InterviewProvider"
+    );
   }
+
   return context;
 };
 

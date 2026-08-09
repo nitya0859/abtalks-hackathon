@@ -1,50 +1,35 @@
-const LearningRoadmap = ({
-  roadmap = [],
-}) => {
-  // ============================================================
-  // EMPTY STATE
-  // ============================================================
-
+const LearningRoadmap = ({ roadmap = [] }) => {
   if (!Array.isArray(roadmap) || roadmap.length === 0) {
     return (
       <section
         className="
-          bg-slate-900/60
-          backdrop-blur-xl
-          border
-          border-slate-800/80
-          rounded-2xl
-          p-5
-          sm:p-6
-          shadow-xl
+          rounded-[22px]
+          border border-[#ddd7cd]
+          bg-[#faf8f4]
+          p-5 sm:p-6 lg:p-7
+          shadow-[0_8px_30px_rgba(72,65,54,0.05)]
         "
       >
         <div className="flex items-start gap-3">
           <div
             className="
-              w-9
-              h-9
+              w-9 h-9
               rounded-xl
-              bg-purple-500/10
-              border
-              border-purple-500/20
-              flex
-              items-center
-              justify-center
+              bg-[#ebe6dc]
+              border border-[#d9d2c6]
+              flex items-center justify-center
               flex-shrink-0
             "
           >
-            <span className="text-purple-300 text-sm">
-              ✦
-            </span>
+            <span className="text-[#625d54]">✦</span>
           </div>
 
           <div>
-            <h2 className="text-sm font-semibold text-white">
+            <h2 className="text-sm font-semibold text-[#302d28]">
               Learning Roadmap
             </h2>
 
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs text-[#817a70] mt-1 leading-relaxed">
               No specific improvement areas were identified
               from the evaluated responses.
             </p>
@@ -54,163 +39,123 @@ const LearningRoadmap = ({
     );
   }
 
-  // ============================================================
-  // ROADMAP
-  // ============================================================
-
   return (
     <section
       className="
-        bg-slate-900/60
-        backdrop-blur-xl
-        border
-        border-slate-800/80
-        rounded-2xl
-        p-5
-        sm:p-6
-        shadow-xl
+        rounded-[22px]
+        border border-[#ddd7cd]
+        bg-[#faf8f4]
+        p-5 sm:p-6 lg:p-7
+        shadow-[0_8px_30px_rgba(72,65,54,0.05)]
       "
     >
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
+      {/* HEADER */}
       <div className="mb-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div
             className="
-              w-9
-              h-9
+              w-9 h-9
               rounded-xl
-              bg-purple-500/10
-              border
-              border-purple-500/20
-              flex
-              items-center
-              justify-center
+              bg-[#ebe6dc]
+              border border-[#d9d2c6]
+              flex items-center justify-center
               flex-shrink-0
             "
           >
-            <span className="text-purple-300 text-sm">
-              ✦
-            </span>
+            <span className="text-[#625d54]">✦</span>
           </div>
 
           <div>
-            <h2 className="text-sm font-semibold text-white">
+            <h2 className="text-sm sm:text-base font-semibold text-[#302d28]">
               Learning Roadmap
             </h2>
 
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-[#817a70] mt-0.5">
               What to focus on next
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-400 leading-relaxed mt-4 max-w-2xl">
-          These recommendations are based on the areas
-          Evoke identified during your interview. They are
-          intended to give you a practical next step rather
-          than simply repeating the topics you selected.
+        <p className="text-xs text-[#746e64] leading-relaxed mt-4 max-w-3xl">
+          These recommendations are based on the areas Evoke
+          identified during your interview. They are intended
+          to give you a practical next step rather than simply
+          repeating the topics you selected.
         </p>
       </div>
 
-      {/* ======================================================
-          ROADMAP ITEMS
-      ====================================================== */}
-
+      {/* ROADMAP */}
       <div className="space-y-3">
         {roadmap.map((item, index) => {
-          const action =
-            item?.action || "Practice";
-
-          const topic =
-            item?.topic ||
-            "Interview Skills";
-
+          const action = item?.action || "Practice";
+          const topic = item?.topic || "Interview Skills";
           const description =
-            item?.desc ||
-            "Continue practicing this area.";
+            item?.desc || "Continue practicing this area.";
 
           return (
             <div
               key={`${topic}-${index}`}
               className="
-                relative
-                p-4
-                rounded-xl
-                bg-slate-950/50
-                border
-                border-slate-800
-                hover:border-slate-700
-                transition
+                group
+                p-4 sm:p-5
+                rounded-2xl
+                bg-[#f6f3ed]
+                border border-[#ddd7cd]
+                hover:border-[#c9c2b6]
+                hover:bg-[#f3f0e9]
+                transition-all duration-200
               "
             >
               <div className="flex items-start gap-4">
                 {/* NUMBER */}
-
                 <div
                   className="
-                    w-8
-                    h-8
-                    rounded-lg
-                    bg-slate-900
-                    border
-                    border-slate-800
-                    flex
-                    items-center
-                    justify-center
+                    w-9 h-9
+                    rounded-xl
+                    bg-[#e8e3d9]
+                    border border-[#d5cec2]
+                    flex items-center justify-center
                     flex-shrink-0
                   "
                 >
-                  <span className="text-xs font-bold text-slate-400">
-                    {String(index + 1).padStart(
-                      2,
-                      "0"
-                    )}
+                  <span className="text-[11px] font-bold text-[#716b61]">
+                    {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
 
                 {/* CONTENT */}
-
                 <div className="flex-1 min-w-0">
                   <div
                     className="
-                      flex
-                      flex-col
+                      flex flex-col
                       sm:flex-row
                       sm:items-center
                       sm:justify-between
                       gap-2
                     "
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="text-sm font-semibold text-white truncate">
-                        {topic}
-                      </h3>
-                    </div>
+                    <h3 className="text-sm font-semibold text-[#302d28]">
+                      {topic}
+                    </h3>
 
                     <span
                       className="
                         self-start
                         sm:self-auto
-                        px-2.5
-                        py-1
-                        rounded-lg
+                        px-2.5 py-1
+                        rounded-full
+                        bg-[#ebe6dc]
+                        border border-[#d7d0c4]
                         text-[10px]
                         font-semibold
-                        bg-purple-500/10
-                        border
-                        border-purple-500/20
-                        text-purple-300
-                        whitespace-nowrap
+                        text-[#625d54]
                       "
                     >
                       {action}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed mt-2">
+                  <p className="text-xs text-[#817a70] leading-relaxed mt-2">
                     {description}
                   </p>
                 </div>
@@ -220,26 +165,13 @@ const LearningRoadmap = ({
         })}
       </div>
 
-      {/* ======================================================
-          FOOTER
-      ====================================================== */}
+      {/* FOOTER */}
+      <div className="mt-5 pt-4 border-t border-[#e0dad0] flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#687a65]" />
 
-      <div
-        className="
-          mt-5
-          pt-4
-          border-t
-          border-slate-800
-          flex
-          items-center
-          gap-2
-        "
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-
-        <p className="text-[11px] text-slate-500">
-          Start with the first recommendation and work
-          through the roadmap progressively.
+        <p className="text-[11px] text-[#817a70]">
+          Start with the first recommendation and work through
+          the roadmap progressively.
         </p>
       </div>
     </section>

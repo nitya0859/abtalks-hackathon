@@ -1,111 +1,400 @@
 import { useInterview } from "../../context/InterviewContext";
-import { interviewQuestions } from "../../data/questions";
 
 const TopicTimeline = () => {
   const {
     selectedTopics,
+    customSkills,
+    questions,
     currentQuestion,
     answers,
   } = useInterview();
 
-  const topics = selectedTopics.map(
+  // ============================================================
+  // GET ALL SELECTED TOPICS
+  // ============================================================
+
+  const selectedTopicList = [
+    ...(Array.isArray(selectedTopics)
+      ? selectedTopics
+      : []),
+
+    ...(Array.isArray(customSkills)
+      ? customSkills
+      : []),
+  ]
+    .filter(
+      (topic) =>
+        typeof topic === "string" &&
+        topic.trim().length > 0
+    )
+    .map((topic) => topic.trim());
+
+  // ============================================================
+  // REMOVE DUPLICATE TOPICS
+  // ============================================================
+
+  const uniqueTopics = [];
+
+  selectedTopicList.forEach((topic) => {
+    const normalized =
+      topic.toLowerCase().trim();
+
+    const alreadyExists =
+      uniqueTopics.some(
+        (existingTopic) =>
+          existingTopic
+            .toLowerCase()
+            .trim() === normalized
+      );
+
+    if (!alreadyExists) {
+      uniqueTopics.push(topic);
+    }
+  });
+
+  // ============================================================
+  // BUILD TOPIC STATUS
+  // ============================================================
+
+  const topics = uniqueTopics.map(
     (topic, index) => {
       const normalizedTopic =
         topic.toLowerCase().trim();
 
-      const matchingQuestions =
-        interviewQuestions.filter((question) =>
-          question.topic
+      // --------------------------------------------------------
+      // MAIN QUESTIONS FOR THIS TOPIC
+      // --------------------------------------------------------
+
+      const topicQuestions = (
+        Array.isArray(questions)
+          ? questions
+          : []
+      ).filter((question) => {
+        if (question?.isFollowUp) {
+          return false;
+        }
+
+        const questionTopic =
+          question?.topic
             ?.toLowerCase()
-            .includes(normalizedTopic)
+            .trim() || "";
+
+        if (!questionTopic) {
+          return false;
+        }
+
+        return (
+          questionTopic.includes(
+            normalizedTopic
+          ) ||
+          normalizedTopic.includes(
+            questionTopic
+          )
+        );
+      });
+
+      // --------------------------------------------------------
+      // CHECK IF TOPIC HAS BEEN ANSWERED
+      // --------------------------------------------------------
+
+      const hasAnswered =
+        topicQuestions.some(
+          (question) => {
+            const answer =
+              answers?.[question.id];
+
+            if (
+              typeof answer === "string"
+            ) {
+              return (
+                answer.trim().length > 0
+              );
+            }
+
+            if (
+              typeof answer === "object" &&
+              answer !== null
+            ) {
+              if (
+                typeof answer.answer ===
+                "string"
+              ) {
+                return (
+                  answer.answer
+                    .trim()
+                    .length > 0
+                );
+              }
+
+              if (
+                typeof answer.text ===
+                "string"
+              ) {
+                return (
+                  answer.text
+                    .trim()
+                    .length > 0
+                );
+              }
+
+              return Object.values(
+                answer
+              ).some(
+                (value) =>
+                  typeof value ===
+                    "string" &&
+                  value.trim().length > 0
+              );
+            }
+
+            return false;
+          }
         );
 
-      const hasAnswered = matchingQuestions.some(
-        (question) =>
-          answers[question.id]
-      );
+      // --------------------------------------------------------
+      // CHECK CURRENT TOPIC
+      // --------------------------------------------------------
 
-      const isActive =
+      const currentTopic =
         currentQuestion?.topic
           ?.toLowerCase()
-          .includes(normalizedTopic);
+          .trim() || "";
+
+      const isCurrentTopic =
+        currentTopic.length > 0 &&
+        (
+          currentTopic.includes(
+            normalizedTopic
+          ) ||
+          normalizedTopic.includes(
+            currentTopic
+          )
+        );
+
+      // --------------------------------------------------------
+      // STATUS
+      // --------------------------------------------------------
+
+      let status = "upcoming";
+
+      if (hasAnswered) {
+        status = "completed";
+      } else if (isCurrentTopic) {
+        status = "active";
+      }
 
       return {
         id: `${topic}-${index}`,
         name: topic,
-        status: hasAnswered
-          ? "completed"
-          : isActive
-          ? "active"
-          : "upcoming",
+        status,
       };
     }
   );
 
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
-        Topic Timeline
-      </h4>
+
+      {/* ==================================================
+          HEADER
+      ================================================== */}
+
+      <div className="flex items-center justify-between mb-4">
+
+        <div>
+
+          <p
+            className="
+              text-[9px]
+              uppercase
+              tracking-[0.15em]
+              font-bold
+              text-[#aaa399]
+            "
+          >
+            Interview Flow
+          </p>
+
+          <h3
+            className="
+              text-sm
+              font-semibold
+              text-[#25231f]
+              mt-1
+            "
+          >
+            Topics
+          </h3>
+
+        </div>
+
+        {/* NUMBER OF SELECTED TOPICS */}
+
+        <span className="text-[9px] text-[#aaa399]">
+          {topics.length}
+        </span>
+
+      </div>
+
+      {/* ==================================================
+          NO TOPICS
+      ================================================== */}
 
       {topics.length === 0 ? (
-        <p className="text-xs text-slate-500">
-          No interview topics selected.
-        </p>
+
+        <div
+          className="
+            p-3
+            rounded-xl
+            bg-[#25231f]/[0.025]
+            border
+            border-[#25231f]/10
+          "
+        >
+
+          <p className="text-[10px] text-[#777269]">
+            No specific topics selected.
+          </p>
+
+        </div>
+
       ) : (
-        <div className="space-y-1.5 relative before:absolute before:left-3.5 before:top-3 before:bottom-3 before:w-[1px] before:bg-slate-800/80">
+
+        <div className="relative space-y-2">
+
+          {/* ==================================================
+              VERTICAL LINE
+          ================================================== */}
+
+          {topics.length > 1 && (
+
+            <div
+              className="
+                absolute
+                left-[13px]
+                top-4
+                bottom-4
+                w-px
+                bg-[#25231f]/10
+              "
+            />
+
+          )}
+
+          {/* ==================================================
+              TOPIC ITEMS
+          ================================================== */}
+
           {topics.map((topic) => {
+
             const isCompleted =
-              topic.status === "completed";
+              topic.status ===
+              "completed";
 
             const isActive =
-              topic.status === "active";
+              topic.status ===
+              "active";
 
             return (
+
               <div
                 key={topic.id}
-                className={`flex items-center gap-3 p-2.5 rounded-xl border text-xs transition-all duration-200 relative z-10 ${
-                  isActive
-                    ? "bg-purple-600/15 border-purple-500/80 text-white shadow-[0_0_15px_rgba(168,85,247,0.15)]"
-                    : isCompleted
-                    ? "bg-slate-950/40 border-slate-800/80 text-slate-300"
-                    : "bg-slate-950/20 border-slate-800/40 text-slate-500"
-                }`}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                className={`
+                  relative
+                  z-10
+                  flex
+                  items-center
+                  gap-3
+                  p-2.5
+                  rounded-xl
+                  border
+                  transition-all
+
+                  ${
                     isActive
-                      ? "bg-purple-500 text-white shadow-md shadow-purple-500/40"
+                      ? "bg-[#292621] border-[#292621] text-[#f6f1e8]"
                       : isCompleted
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                      : "border border-slate-700 text-slate-600 bg-slate-900"
-                  }`}
+                      ? "bg-[#536451]/5 border-[#536451]/15 text-[#403c35]"
+                      : "bg-white/20 border-[#25231f]/8 text-[#aaa399]"
+                  }
+                `}
+              >
+
+                {/* STATUS ICON */}
+
+                <div
+                  className={`
+                    w-7
+                    h-7
+                    rounded-lg
+                    flex
+                    items-center
+                    justify-center
+                    text-[10px]
+                    font-bold
+                    flex-shrink-0
+
+                    ${
+                      isActive
+                        ? "bg-[#f6f1e8]/10 text-[#f6f1e8]"
+                        : isCompleted
+                        ? "bg-[#536451]/10 text-[#536451]"
+                        : "bg-[#25231f]/5 text-[#aaa399]"
+                    }
+                  `}
                 >
+
                   {isCompleted
                     ? "✓"
                     : isActive
-                    ? "●"
+                    ? "•"
                     : "○"}
+
                 </div>
 
+                {/* TOPIC NAME */}
+
                 <span
-                  className={`font-medium flex-1 ${
-                    isActive
-                      ? "text-purple-200"
-                      : ""
-                  }`}
+                  className={`
+                    text-[10px]
+                    font-medium
+                    flex-1
+                    truncate
+
+                    ${
+                      isActive
+                        ? "text-[#f6f1e8]"
+                        : ""
+                    }
+                  `}
                 >
                   {topic.name}
                 </span>
 
+                {/* ACTIVE INDICATOR */}
+
                 {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
+
+                  <span
+                    className="
+                      w-1.5
+                      h-1.5
+                      rounded-full
+                      bg-[#f6f1e8]
+                      animate-pulse
+                    "
+                  />
+
                 )}
+
               </div>
+
             );
           })}
+
         </div>
+
       )}
+
     </div>
   );
 };

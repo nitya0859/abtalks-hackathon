@@ -1,36 +1,24 @@
-const PerformanceChart = ({
-  metrics = {},
-}) => {
+const PerformanceChart = ({ metrics = {} }) => {
   const performanceMetrics = [
     {
       label: "Technical Accuracy",
       score: Number(metrics.accuracy) || 0,
-      color: "from-purple-500 to-indigo-500",
-      text: "text-purple-400",
     },
     {
       label: "Reasoning",
       score: Number(metrics.reasoning) || 0,
-      color: "from-indigo-500 to-violet-500",
-      text: "text-indigo-400",
     },
     {
       label: "Communication",
       score: Number(metrics.communication) || 0,
-      color: "from-violet-500 to-purple-400",
-      text: "text-violet-400",
     },
     {
       label: "Problem Solving",
       score: Number(metrics.problemSolving) || 0,
-      color: "from-cyan-500 to-blue-500",
-      text: "text-cyan-400",
     },
     {
       label: "Confidence",
       score: Number(metrics.confidence) || 0,
-      color: "from-amber-500 to-orange-500",
-      text: "text-amber-400",
     },
   ];
 
@@ -41,129 +29,87 @@ const PerformanceChart = ({
   return (
     <section
       className="
-        bg-slate-900/60
-        backdrop-blur-xl
-        border
-        border-slate-800/80
-        rounded-2xl
-        p-5
-        sm:p-6
-        shadow-xl
+        rounded-[22px]
+        border border-[#ddd7cd]
+        bg-[#faf8f4]
+        p-5 sm:p-6 lg:p-7
+        shadow-[0_8px_30px_rgba(72,65,54,0.05)]
       "
     >
-      {/* ====================================================
-          HEADER
-      ==================================================== */}
-
+      {/* HEADER */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-base sm:text-lg font-semibold text-white">
+          <h2 className="text-base sm:text-lg font-semibold text-[#302d28]">
             Performance Summary
           </h2>
 
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[#817a70] mt-1">
             Evaluated across core engineering competency dimensions
           </p>
         </div>
 
         <span
           className="
-            hidden
-            sm:inline-flex
-            px-2.5
-            py-1
-            rounded-lg
-            bg-purple-500/10
-            border
-            border-purple-500/20
+            hidden sm:inline-flex
+            px-2.5 py-1
+            rounded-full
+            bg-[#ebe6dc]
+            border border-[#d8d1c5]
             text-[10px]
             font-semibold
-            text-purple-300
+            text-[#625d54]
           "
         >
           5 Metric Dimensions
         </span>
       </div>
 
-      {/* ====================================================
-          NO EVALUATION STATE
-      ==================================================== */}
-
+      {/* EMPTY */}
       {!hasMetrics ? (
         <div
           className="
             p-4
             rounded-xl
-            bg-slate-950/50
-            border
-            border-slate-800
+            bg-[#f5f2ec]
+            border border-[#e2dcd2]
           "
         >
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#817a70]">
             No evaluated responses are available yet.
           </p>
         </div>
       ) : (
-        /* ==================================================
-           METRICS
-        ================================================== */
-
-        <div className="space-y-4">
+        <div className="space-y-5">
           {performanceMetrics.map((item) => (
-            <div
-              key={item.label}
-              className="space-y-1.5"
-            >
-              {/* LABEL + SCORE */}
-
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  text-xs
-                  sm:text-sm
-                "
-              >
-                <span className="font-medium text-slate-200">
+            <div key={item.label} className="space-y-2">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="font-medium text-[#4d4942]">
                   {item.label}
                 </span>
 
-                <span
-                  className={`
-                    font-mono
-                    font-bold
-                    ${item.text}
-                  `}
-                >
+                <span className="font-mono font-bold text-[#302d28]">
                   {item.score}%
                 </span>
               </div>
 
-              {/* PROGRESS BAR */}
-
               <div
                 className="
                   w-full
-                  bg-slate-950/80
-                  h-2.5
+                  h-2
                   rounded-full
+                  bg-[#e7e2d9]
                   overflow-hidden
-                  border
-                  border-slate-800
                 "
               >
                 <div
-                  className={`
+                  className="
                     h-full
                     rounded-full
-                    bg-gradient-to-r
-                    ${item.color}
+                    bg-[#687a65]
                     transition-all
                     duration-1000
                     ease-out
-                    shadow-[0_0_12px_rgba(168,85,247,0.3)]
-                  `}
+                  "
                   style={{
                     width: `${item.score}%`,
                   }}
@@ -174,28 +120,13 @@ const PerformanceChart = ({
         </div>
       )}
 
-      {/* ====================================================
-          SCORE INTERPRETATION
-      ==================================================== */}
-
       {hasMetrics && (
-        <div
-          className="
-            mt-6
-            pt-4
-            border-t
-            border-slate-800/70
-            flex
-            items-center
-            justify-between
-            gap-3
-          "
-        >
-          <p className="text-[11px] text-slate-500">
+        <div className="mt-6 pt-4 border-t border-[#e1dbd1] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p className="text-[11px] text-[#817a70]">
             Scores are calculated only from evaluated responses.
           </p>
 
-          <span className="text-[10px] text-slate-600">
+          <span className="text-[10px] text-[#999188]">
             Unanswered questions excluded
           </span>
         </div>

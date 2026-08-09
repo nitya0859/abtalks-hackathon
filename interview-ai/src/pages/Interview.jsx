@@ -9,682 +9,349 @@ import AnswerBox from "../components/interview/AnswerBox";
 import ThinkingCard from "../components/interview/ThinkingCard";
 import EvaluationPanel from "../components/interview/EvaluationPanel";
 
-// ============================================================
-// CONFIG
-// ============================================================
+import { interviewQuestions } from "../data/questions";
 
-// Minimum number of MAIN questions that must be answered
-// before the candidate can manually finish the interview.
 const MINIMUM_ANSWERED_QUESTIONS = 3;
 
 const Interview = () => {
   const navigate = useNavigate();
 
   // ============================================================
+  // LIVE EVALUATION VISIBILITY
+  // ============================================================
+
+  // Dashboard is CLOSED when interview starts.
+  const [showEvaluation, setShowEvaluation] = useState(false);
+
+  // ============================================================
   // INTERVIEW CONTEXT
   // ============================================================
 
   const {
-    candidateName,
-    effectiveRole,
-    difficulty,
-
     currentQuestion,
     currentQuestionIndex,
-    totalQuestions,
-
-    answers,
-
+    questions,
+    difficulty,
     isThinking,
     isFollowUpPhase,
-
+    followUpQuestion,
     interviewCompleted,
-
-    evaluatedQuestionCount,
-
     finishInterview,
+    answers,
   } = useInterview();
 
   // ============================================================
-  // LOCAL UI STATE
+  // TOTAL MAIN QUESTIONS
   // ============================================================
 
-  const [
-    showFinishConfirmation,
-    setShowFinishConfirmation,
-  ] = useState(false);
+  const totalQuestions = 6;
 
-  const [
-    showEvaluation,
-    setShowEvaluation,
-  ] = useState(false);
+  // ============================================================
+  // MAIN QUESTIONS ONLY
+  // ============================================================
+
+  const mainQuestions = useMemo(() => {
+    if (!Array.isArray(questions)) {
+      return [];
+    }
+
+    return questions.filter(
+      (question) => !question?.isFollowUp
+    );
+  }, [questions]);
+
+  // ============================================================
+  // CURRENT MAIN QUESTION NUMBER
+  //
+  // Follow-ups do NOT increment this number.
+  // ============================================================
+
+  const currentMainQuestionNumber = useMemo(() => {
+    if (!Array.isArray(questions)) {
+      return 1;
+    }
+
+    if (!currentQuestion) {
+      return 1;
+    }
+
+    if (currentQuestion.isFollowUp) {
+      const parentIndex = questions.findIndex(
+        (question) =>
+          question?.id === currentQuestion?.parentQuestionId
+      );
+
+      if (parentIndex >= 0) {
+        return (
+          questions
+            .slice(0, parentIndex + 1)
+            .filter(
+              (question) =>
+                !question?.isFollowUp
+            ).length
+        );
+      }
+
+      // If the backend doesn't provide parentQuestionId,
+      // find the closest previous MAIN question.
+      for (
+        let i = currentQuestionIndex - 1;
+        i >= 0;
+        i--
+      ) {
+        if (!questions[i]?.isFollowUp) {
+          return (
+            questions
+              .slice(0, i + 1)
+              .filter(
+                (question) =>
+                  !question?.isFollowUp
+              ).length
+          );
+        }
+      }
+
+      return Math.max(
+        1,
+        mainQuestions.length
+      );
+    }
+
+    const mainIndex = mainQuestions.findIndex(
+      (question) =>
+        question?.id === currentQuestion?.id
+    );
+
+    return mainIndex >= 0
+      ? mainIndex + 1
+      : Math.max(
+          1,
+          mainQuestions.length
+        );
+  }, [
+    questions,
+    currentQuestion,
+    currentQuestionIndex,
+    mainQuestions,
+  ]);
 
   // ============================================================
   // ANSWERED MAIN QUESTIONS
   // ============================================================
 
-  const answeredMainQuestionCount =
-    useMemo(() => {
-      if (!Array.isArray(answers)) {
-        // answers is normally an object
-      }
+  const answeredMainQuestions = useMemo(() => {
+    if (
+      !Array.isArray(mainQuestions) ||
+      !answers ||
+      typeof answers !== "object"
+    ) {
+      return 0;
+    }
 
-      return Object.entries(answers || {}).filter(
-        ([questionId, answer]) => {
-          const question = Object.keys(
-            answers || {}
-          ).length
-            ? null
-            : null;
+    return mainQuestions.filter(
+      (question) => {
+        const answer =
+          answers?.[question.id];
 
-          return (
-            Boolean(answer?.trim()) &&
-            !question
+        if (
+          typeof answer === "string"
+        ) {
+          return answer.trim().length > 0;
+        }
+
+        if (
+          typeof answer === "object" &&
+          answer !== null
+        ) {
+          if (
+            typeof answer.answer ===
+            "string"
+          ) {
+            return (
+              answer.answer.trim()
+                .length > 0
+            );
+          }
+
+          if (
+            typeof answer.text ===
+            "string"
+          ) {
+            return (
+              answer.text.trim()
+                .length > 0
+            );
+          }
+
+          return Object.values(
+            answer
+          ).some(
+            (value) =>
+              typeof value === "string" &&
+              value.trim().length > 0
           );
         }
-      ).length;
-    }, [answers]);
 
-  // ============================================================
-  // NOTE:
-  // The count above only works correctly if we know which
-  // answer IDs belong to main questions.
-  //
-  // Since the context already exposes questions through the
-  // current setup, we derive the count from the current
-  // interview question list below.
-  // ============================================================
-
-  const {
-    questions,
-  } = useInterview();
-
-  const actualAnsweredMainQuestionCount =
-    useMemo(() => {
-      if (!Array.isArray(questions)) {
-        return 0;
+        return false;
       }
+    ).length;
+  }, [mainQuestions, answers]);
 
-      return questions.filter(
-        (question) =>
-          !question.isFollowUp &&
-          Boolean(
-            answers?.[question.id]?.trim()
-          )
-      ).length;
-    }, [questions, answers]);
+  // ============================================================
+  // FINISH CONDITION
+  // ============================================================
 
-  const minimumQuestionsCompleted =
-    actualAnsweredMainQuestionCount >=
+  const canFinish =
+    answeredMainQuestions >=
     MINIMUM_ANSWERED_QUESTIONS;
 
   // ============================================================
-  // REMAINING REQUIRED QUESTIONS
+  // QUESTION TEXT
   // ============================================================
 
-  const remainingRequiredQuestions =
-    Math.max(
-      0,
-      MINIMUM_ANSWERED_QUESTIONS -
-        actualAnsweredMainQuestionCount
-    );
+  const questionText =
+    isFollowUpPhase && followUpQuestion
+      ? followUpQuestion
+      : currentQuestion?.question ||
+        currentQuestion?.questionText ||
+        "Let's begin the interview.";
+
+  // ============================================================
+  // QUESTION TOPIC
+  // ============================================================
+
+  const questionTopic =
+    currentQuestion?.topic ||
+    "Interview";
+
+  // ============================================================
+  // QUESTION DIFFICULTY
+  // ============================================================
+
+  const questionDifficulty =
+    currentQuestion?.difficulty ||
+    difficulty ||
+    "Medium";
+
+  // ============================================================
+  // STATUS
+  // ============================================================
+
+  const statusText = isThinking
+    ? "Evoke is thinking"
+    : isFollowUpPhase
+    ? "Follow-up question"
+    : "Your turn to answer";
 
   // ============================================================
   // REDIRECT TO REPORT
   // ============================================================
 
   useEffect(() => {
-    if (!interviewCompleted) {
-      return;
+    if (interviewCompleted) {
+      navigate("/report");
     }
-
-    navigate("/report", {
-      replace: true,
-    });
-  }, [
-    interviewCompleted,
-    navigate,
-  ]);
-
-  // ============================================================
-  // SAFETY
-  // ============================================================
-
-  if (
-    !currentQuestion &&
-    !interviewCompleted
-  ) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-6">
-        <div className="text-center max-w-md">
-
-          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-            <span className="text-purple-400 text-xl">
-              !
-            </span>
-          </div>
-
-          <h1 className="text-lg font-semibold mb-2">
-            Interview could not be loaded
-          </h1>
-
-          <p className="text-sm text-slate-400 mb-5">
-            We couldn't find the current interview
-            question. Please return to setup and start
-            the interview again.
-          </p>
-
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/setup")
-            }
-            className="
-              px-5
-              py-2.5
-              rounded-xl
-              text-sm
-              font-semibold
-              text-white
-              bg-gradient-to-r
-              from-purple-600
-              to-indigo-600
-              hover:from-purple-500
-              hover:to-indigo-500
-              transition
-            "
-          >
-            Back to Setup
-          </button>
-
-        </div>
-      </div>
-    );
-  }
+  }, [interviewCompleted, navigate]);
 
   // ============================================================
   // FINISH INTERVIEW
   // ============================================================
 
   const handleFinishInterview = () => {
-    // Never allow the candidate to finish while AI
-    // is still evaluating the current response.
-    if (isThinking) {
+    if (!canFinish) {
       return;
     }
 
-    // Mandatory minimum question check.
-    if (!minimumQuestionsCompleted) {
-      return;
+    if (finishInterview) {
+      finishInterview();
     }
-
-    setShowFinishConfirmation(true);
   };
 
   // ============================================================
-  // CONFIRM FINISH
+  // TOGGLE EVALUATION
   // ============================================================
 
-  const confirmFinishInterview = () => {
-    // Safety check.
-    if (!minimumQuestionsCompleted) {
-      return;
-    }
-
-    setShowFinishConfirmation(false);
-
-    setShowEvaluation(false);
-
-    finishInterview();
+  const toggleEvaluation = () => {
+    setShowEvaluation(
+      (previous) => !previous
+    );
   };
-
-  // ============================================================
-  // CANCEL FINISH
-  // ============================================================
-
-  const cancelFinishInterview = () => {
-    setShowFinishConfirmation(false);
-  };
-
-  // ============================================================
-  // CURRENT QUESTION NUMBER
-  // ============================================================
-
-  const questionNumber =
-    currentQuestionIndex + 1;
-
-  // ============================================================
-  // FOLLOW-UP STATUS
-  // ============================================================
-
-  const sessionStatus = isThinking
-    ? "Evoke is evaluating your answer"
-    : isFollowUpPhase
-    ? "Follow-up question"
-    : "Your turn to answer";
-
-  // ============================================================
-  // RENDER
-  // ============================================================
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-white flex flex-col">
+    <div className="min-h-screen w-full bg-[#f1ede4] text-[#25231f] flex flex-col">
 
       {/* ======================================================
-          TOP NAVIGATION
+          HEADER
       ====================================================== */}
 
-      <header
-        className="
-          h-[72px]
-          flex
-          items-center
-          justify-between
-          px-4
-          sm:px-6
-          border-b
-          border-slate-800/70
-          bg-slate-950/90
-          backdrop-blur-xl
-          flex-shrink-0
-        "
-      >
+      <header className="sticky top-0 z-50 h-[76px] bg-[#f1ede4]/95 backdrop-blur-xl border-b border-[#d8d1c5]">
 
-        {/* Logo */}
+        <div className="h-full max-w-[1600px] mx-auto px-5 sm:px-7 lg:px-9 flex items-center justify-between">
 
-        <Logo />
+          {/* LOGO */}
 
-        {/* Session information */}
-
-        <div className="hidden md:flex items-center gap-4">
-
-          {/* Live indicator */}
-
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-
-            <span
-              className={`
-                w-2
-                h-2
-                rounded-full
-                ${
-                  isThinking
-                    ? "bg-amber-400"
-                    : "bg-purple-500 animate-pulse"
-                }
-              `}
-            />
-
-            <span>
-              {isThinking
-                ? "Evoke is thinking..."
-                : "Live Interview"}
-            </span>
-
+          <div className="flex items-center flex-shrink-0">
+            <Logo />
           </div>
 
-          {/* Divider */}
+          {/* CENTER HEADER */}
 
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="hidden md:flex items-center gap-4 absolute left-1/2 -translate-x-1/2">
 
-          {/* Role */}
+            <div className="flex items-center gap-2 text-sm font-medium text-[#625d54]">
 
-          <div className="text-xs text-slate-500">
-            {effectiveRole ||
-              "Technical Interview"}
-          </div>
+              <span className="w-2 h-2 rounded-full bg-[#687a65]" />
 
-        </div>
-
-        {/* ==================================================
-            RIGHT SIDE ACTIONS
-        ================================================== */}
-
-        <div className="flex items-center gap-2">
-
-          {/* LIVE EVALUATION */}
-
-          <button
-            type="button"
-            onClick={() =>
-              setShowEvaluation(
-                (previous) => !previous
-              )
-            }
-            className="
-              hidden
-              sm:flex
-              items-center
-              gap-2
-              py-2
-              px-3.5
-              rounded-xl
-              text-xs
-              font-semibold
-              text-purple-300
-              bg-purple-500/10
-              border
-              border-purple-500/20
-              hover:bg-purple-500/15
-              hover:border-purple-500/40
-              transition
-            "
-          >
-
-            <span
-              className={`
-                w-1.5
-                h-1.5
-                rounded-full
-                ${
-                  isThinking
-                    ? "bg-amber-400 animate-pulse"
-                    : evaluatedQuestionCount > 0
-                    ? "bg-emerald-400"
-                    : "bg-slate-500"
-                }
-              `}
-            />
-
-            {showEvaluation
-              ? "Hide Evaluation"
-              : "Live Evaluation"}
-
-            {evaluatedQuestionCount > 0 && (
-              <span className="text-[10px] text-slate-500">
-                {evaluatedQuestionCount}
+              <span>
+                Live Interview
               </span>
-            )}
-
-          </button>
-
-          {/* FINISH BUTTON */}
-
-          <button
-            type="button"
-            onClick={handleFinishInterview}
-            disabled={
-              isThinking ||
-              !minimumQuestionsCompleted
-            }
-            title={
-              !minimumQuestionsCompleted
-                ? `Answer ${remainingRequiredQuestions} more required question${
-                    remainingRequiredQuestions === 1
-                      ? ""
-                      : "s"
-                  } before finishing.`
-                : "Finish interview"
-            }
-            className="
-              py-2
-              px-4
-              rounded-xl
-              text-xs
-              font-semibold
-              text-white
-              bg-gradient-to-r
-              from-purple-600
-              via-indigo-600
-              to-purple-600
-              hover:from-purple-500
-              hover:to-indigo-500
-              disabled:opacity-40
-              disabled:cursor-not-allowed
-              transition
-              shadow-md
-              shadow-purple-900/30
-            "
-          >
-            {isThinking
-              ? "Evaluating..."
-              : "Finish Interview"}
-          </button>
-
-        </div>
-
-      </header>
-
-
-      {/* ======================================================
-          MOBILE SESSION STATUS
-      ====================================================== */}
-
-      <div
-        className="
-          lg:hidden
-          px-4
-          pt-4
-        "
-      >
-
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-            gap-3
-            p-3
-            rounded-xl
-            bg-slate-900/60
-            border
-            border-slate-800
-          "
-        >
-
-          <div className="min-w-0">
-
-            <p className="text-xs text-slate-500">
-              {effectiveRole ||
-                "Technical Interview"}
-            </p>
-
-            <p className="text-sm font-medium text-slate-200 truncate">
-              {sessionStatus}
-            </p>
-
-          </div>
-
-          <div
-            className="
-              flex-shrink-0
-              px-2.5
-              py-1
-              rounded-lg
-              bg-purple-500/10
-              border
-              border-purple-500/20
-              text-[10px]
-              font-semibold
-              text-purple-300
-            "
-          >
-            {questionNumber}/
-            {totalQuestions}
-          </div>
-
-        </div>
-
-
-        {/* MOBILE EVALUATION BUTTON */}
-
-        <button
-          type="button"
-          onClick={() =>
-            setShowEvaluation(
-              (previous) => !previous
-            )
-          }
-          className="
-            mt-3
-            w-full
-            flex
-            items-center
-            justify-center
-            gap-2
-            py-2.5
-            rounded-xl
-            text-xs
-            font-semibold
-            text-purple-300
-            bg-purple-500/10
-            border
-            border-purple-500/20
-            hover:bg-purple-500/15
-            transition
-          "
-        >
-
-          <span
-            className={`
-              w-1.5
-              h-1.5
-              rounded-full
-              ${
-                isThinking
-                  ? "bg-amber-400 animate-pulse"
-                  : evaluatedQuestionCount > 0
-                  ? "bg-emerald-400"
-                  : "bg-slate-500"
-              }
-            `}
-          />
-
-          {showEvaluation
-            ? "Hide Live Evaluation"
-            : "View Live Evaluation"}
-
-          {evaluatedQuestionCount > 0 && (
-            <span className="text-slate-500">
-              • {evaluatedQuestionCount} evaluated
-            </span>
-          )}
-
-        </button>
-
-      </div>
-
-
-      {/* ======================================================
-          MAIN INTERVIEW AREA
-      ====================================================== */}
-
-      <main
-        className="
-          flex-1
-          p-4
-          sm:p-6
-          max-w-[1700px]
-          w-full
-          mx-auto
-          flex
-          flex-col
-          lg:flex-row
-          gap-6
-        "
-      >
-
-        {/* ====================================================
-            LEFT SIDEBAR
-        ==================================================== */}
-
-        <ProgressSidebar
-          candidateName={
-            candidateName || "Candidate"
-          }
-
-          role={
-            effectiveRole ||
-            "Technical Role"
-          }
-
-          difficulty={
-            difficulty || "Medium"
-          }
-
-          currentQuestion={
-            questionNumber
-          }
-
-          totalQuestions={
-            totalQuestions
-          }
-        />
-
-
-        {/* ====================================================
-            CENTER INTERVIEW AREA
-        ==================================================== */}
-
-        <section
-          className="
-            flex-1
-            flex
-            flex-col
-            gap-5
-            min-w-0
-          "
-        >
-
-          {/* QUESTION HEADER */}
-
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              gap-3
-            "
-          >
-
-            <div>
-
-              <p
-                className="
-                  text-[11px]
-                  uppercase
-                  tracking-[0.15em]
-                  text-purple-400
-                  font-semibold
-                  mb-1
-                "
-              >
-                {isFollowUpPhase
-                  ? "Follow-up"
-                  : "Interview Question"}
-              </p>
-
-              <p className="text-xs text-slate-500">
-                Question {questionNumber} of{" "}
-                {totalQuestions}
-              </p>
 
             </div>
 
+            <span className="w-px h-5 bg-[#d4cec3]" />
 
-            {/* STATUS */}
+            <span className="text-sm text-[#777167]">
+              Technical Interview
+            </span>
 
-            <div
-              className={`
+          </div>
+
+          {/* RIGHT HEADER */}
+
+          <div className="flex items-center gap-2 sm:gap-3">
+
+            {/* ==================================================
+                LIVE EVALUATION BUTTON
+            ================================================== */}
+
+            <button
+              type="button"
+              onClick={toggleEvaluation}
+              aria-expanded={showEvaluation}
+              aria-label={
+                showEvaluation
+                  ? "Hide live evaluation"
+                  : "Show live evaluation"
+              }
+              className="
                 hidden
                 sm:flex
                 items-center
                 gap-2
-                px-3
-                py-1.5
-                rounded-lg
+                px-3.5
+                py-2.5
+                rounded-full
                 border
-                text-[10px]
-                font-medium
-
-                ${
-                  isThinking
-                    ? "bg-amber-500/10 border-amber-500/20 text-amber-300"
-                    : isFollowUpPhase
-                    ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-300"
-                    : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
-                }
-              `}
+                border-[#cbd5c7]
+                bg-[#e9eee5]
+                text-[#5f705d]
+                text-xs
+                font-semibold
+                hover:bg-[#dfe8dc]
+                transition-all
+                duration-200
+                cursor-pointer
+              "
             >
 
               <span
@@ -695,458 +362,504 @@ const Interview = () => {
 
                   ${
                     isThinking
-                      ? "bg-amber-400 animate-pulse"
-                      : isFollowUpPhase
-                      ? "bg-indigo-400"
-                      : "bg-emerald-400"
+                      ? "bg-[#a58d6d] animate-pulse"
+                      : "bg-[#687a65]"
                   }
                 `}
               />
 
-              {sessionStatus}
+              {showEvaluation
+                ? "Hide Evaluation"
+                : "Live Evaluation"}
 
-            </div>
+            </button>
+
+            {/* ==================================================
+                FINISH INTERVIEW
+            ================================================== */}
+
+            <button
+              type="button"
+              onClick={handleFinishInterview}
+              disabled={!canFinish}
+              title={
+                canFinish
+                  ? "Finish interview"
+                  : `Answer ${MINIMUM_ANSWERED_QUESTIONS} main questions to finish`
+              }
+              className={`
+                px-4
+                sm:px-5
+                py-2.5
+                rounded-full
+                text-xs
+                sm:text-sm
+                font-semibold
+                transition-all
+                duration-200
+
+                ${
+                  canFinish
+                    ? "bg-[#b5b2aa] hover:bg-[#a6a39b] text-white cursor-pointer"
+                    : "bg-[#d4d1ca] text-[#969188] cursor-not-allowed"
+                }
+              `}
+            >
+              Finish Interview
+            </button>
 
           </div>
 
+        </div>
 
-          {/* QUESTION CARD */}
-
-          <QuestionCard
-            questionNumber={
-              questionNumber
-            }
-
-            topic={
-              currentQuestion?.topic ||
-              "Technical"
-            }
-
-            difficulty={
-              currentQuestion?.difficulty ||
-              difficulty ||
-              "Medium"
-            }
-
-            questionText={
-              currentQuestion?.question ||
-              "Let's begin the interview."
-            }
-          />
-
-
-          {/* ANSWER BOX */}
-
-          <AnswerBox />
-
-
-          {/* THINKING STATE */}
-
-          <ThinkingCard
-            isThinking={
-              isThinking
-            }
-          />
-
-
-          {/* INTERVIEW GUIDANCE */}
-
-          {!isThinking && (
-            <div
-              className="
-                flex
-                items-start
-                gap-3
-                p-3.5
-                rounded-xl
-                bg-slate-900/40
-                border
-                border-slate-800/60
-              "
-            >
-
-              <div
-                className="
-                  w-7
-                  h-7
-                  rounded-lg
-                  bg-purple-500/10
-                  border
-                  border-purple-500/20
-                  flex
-                  items-center
-                  justify-center
-                  flex-shrink-0
-                "
-              >
-                <span className="text-xs text-purple-300">
-                  ✦
-                </span>
-              </div>
-
-              <div>
-
-                <p className="text-xs font-medium text-slate-300">
-                  Interview tip
-                </p>
-
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                  Be specific. Explain your reasoning
-                  and use examples from your projects or
-                  experience whenever relevant.
-                </p>
-
-              </div>
-
-            </div>
-          )}
-
-        </section>
-
-      </main>
-
+      </header>
 
       {/* ======================================================
-          LIVE EVALUATION OVERLAY
+          MAIN
       ====================================================== */}
 
-      {showEvaluation && (
+      <main
+        className="
+          flex-1
+          w-full
+          max-w-[1600px]
+          mx-auto
+          px-4
+          sm:px-6
+          lg:px-8
+          py-5
+          lg:py-7
+          pb-20
+        "
+      >
+
+        {/* ====================================================
+            MOBILE SIDEBAR
+        ==================================================== */}
+
+        <div className="lg:hidden mb-5">
+          <ProgressSidebar />
+        </div>
+
+        {/* ====================================================
+            MAIN GRID
+
+            CLOSED:
+            Sidebar + Interview
+
+            OPEN:
+            Sidebar + Interview + Evaluation
+        ==================================================== */}
+
         <div
-          className="
-            fixed
-            inset-0
-            z-40
-            bg-slate-950/60
-            backdrop-blur-sm
-            flex
-            justify-end
-          "
-          onClick={(event) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              setShowEvaluation(false);
+          className={`
+            grid
+            grid-cols-1
+
+            ${
+              showEvaluation
+                ? "lg:grid-cols-[280px_minmax(0,1fr)_320px] xl:grid-cols-[300px_minmax(0,1fr)_340px]"
+                : "lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]"
             }
-          }}
+
+            gap-5
+            lg:gap-6
+            items-start
+          `}
         >
 
-          <div
+          {/* ==================================================
+              LEFT SIDEBAR
+          ================================================== */}
+
+          <aside
             className="
-              w-full
-              max-w-md
-              h-full
+              hidden
+              lg:flex
+              flex-col
+              gap-4
+              min-w-0
+              sticky
+              top-[96px]
+              max-h-[calc(100vh-115px)]
               overflow-y-auto
-              bg-slate-950
-              border-l
-              border-slate-800
-              shadow-2xl
-              p-4
-              sm:p-5
+              pr-1
             "
           >
 
-            {/* PANEL HEADER */}
+            <ProgressSidebar />
 
-            <div className="flex items-center justify-between mb-4">
+          </aside>
+
+          {/* ==================================================
+              CENTER INTERVIEW AREA
+          ================================================== */}
+
+          <section className="min-w-0">
+
+            {/* QUESTION TOP HEADER */}
+
+            <div className="flex items-end justify-between gap-4 mb-4">
 
               <div>
 
-                <p className="text-[10px] uppercase tracking-wider text-purple-400 font-bold">
-                  AI Monitoring
+                <p
+                  className="
+                    text-[10px]
+                    sm:text-[11px]
+                    uppercase
+                    tracking-[0.18em]
+                    font-bold
+                    text-[#81786b]
+                    mb-1.5
+                  "
+                >
+                  {isFollowUpPhase
+                    ? "Follow-up Question"
+                    : "Interview Question"}
                 </p>
 
-                <h2 className="text-sm font-semibold text-white mt-0.5">
-                  Live Evaluation
-                </h2>
+                <p className="text-sm text-[#777269]">
+                  Question{" "}
+                  {currentMainQuestionNumber}{" "}
+                  of {totalQuestions}
+                </p>
 
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setShowEvaluation(false)
-                }
-                className="
-                  w-8
-                  h-8
-                  rounded-lg
-                  bg-slate-900
-                  border
-                  border-slate-800
-                  text-slate-400
-                  hover:text-white
-                  hover:border-slate-700
-                  transition
-                  flex
+              {/* TURN STATUS */}
+
+              <div
+                className={`
+                  hidden
+                  sm:flex
                   items-center
-                  justify-center
-                "
-                aria-label="Close evaluation panel"
+                  gap-2
+                  px-3.5
+                  py-2
+                  rounded-full
+                  border
+                  text-xs
+                  font-semibold
+                  flex-shrink-0
+
+                  ${
+                    isThinking
+                      ? "bg-[#eee6d9] border-[#d7cbbb] text-[#806f58]"
+                      : "bg-[#e9eee5] border-[#cbd5c7] text-[#5f705d]"
+                  }
+                `}
               >
-                ×
-              </button>
+
+                <span
+                  className={`
+                    w-2
+                    h-2
+                    rounded-full
+
+                    ${
+                      isThinking
+                        ? "bg-[#a58d6d] animate-pulse"
+                        : "bg-[#687a65]"
+                    }
+                  `}
+                />
+
+                {statusText}
+
+              </div>
 
             </div>
 
+            {/* ==================================================
+                QUESTION CARD
+            ================================================== */}
 
-            {/* ACTUAL EVALUATION */}
+            <div
+              className="
+                rounded-[22px]
+                overflow-hidden
+                border
+                border-[#ddd7cd]
+                bg-[#faf8f4]
+                shadow-[0_8px_30px_rgba(72,65,54,0.06)]
+              "
+            >
+
+              <QuestionCard
+                questionNumber={
+                  currentMainQuestionNumber
+                }
+                topic={questionTopic}
+                difficulty={questionDifficulty}
+                questionText={questionText}
+              />
+
+            </div>
+
+            {/* ==================================================
+                ANSWER BOX
+            ================================================== */}
+
+            <div
+              className="
+                mt-5
+                rounded-[22px]
+                overflow-hidden
+                border
+                border-[#ddd7cd]
+                bg-[#faf8f4]
+                shadow-[0_8px_30px_rgba(72,65,54,0.06)]
+              "
+            >
+
+              <AnswerBox />
+
+            </div>
+
+            {/* ==================================================
+                THINKING CARD
+            ================================================== */}
+
+            {isThinking && (
+
+              <div className="mt-4">
+
+                <ThinkingCard
+                  isThinking={isThinking}
+                />
+
+              </div>
+
+            )}
+
+            {/* ==================================================
+                INTERVIEW TIP
+            ================================================== */}
+
+            {!isThinking && (
+
+              <div
+                className="
+                  mt-4
+                  flex
+                  items-start
+                  gap-3
+                  px-4
+                  py-3.5
+                  rounded-2xl
+                  bg-[#ebe6dc]
+                  border
+                  border-[#d9d2c6]
+                "
+              >
+
+                <div
+                  className="
+                    w-7
+                    h-7
+                    rounded-lg
+                    bg-[#ddd5c7]
+                    flex
+                    items-center
+                    justify-center
+                    flex-shrink-0
+                  "
+                >
+
+                  <span className="text-[#665f54] text-sm">
+                    ✦
+                  </span>
+
+                </div>
+
+                <div>
+
+                  <p className="text-xs font-semibold text-[#4d4942]">
+                    Interview tip
+                  </p>
+
+                  <p
+                    className="
+                      text-[11px]
+                      text-[#817a70]
+                      mt-0.5
+                      leading-relaxed
+                    "
+                  >
+                    Be specific. Explain your
+                    reasoning, trade-offs, and
+                    technical decisions instead
+                    of only giving the final answer.
+                  </p>
+
+                </div>
+
+              </div>
+
+            )}
+
+          </section>
+
+          {/* ==================================================
+              RIGHT LIVE EVALUATION
+
+              IMPORTANT:
+              This entire section is NOT rendered
+              unless showEvaluation === true.
+          ================================================== */}
+
+          {showEvaluation && (
+
+            <aside
+              className="
+                hidden
+                lg:block
+                min-w-0
+                sticky
+                top-[96px]
+                max-h-[calc(100vh-115px)]
+                overflow-y-auto
+                pr-1
+              "
+            >
+
+              <div className="space-y-4">
+
+                {/* DASHBOARD HEADER */}
+
+                <div>
+
+                  <p
+                    className="
+                      text-[10px]
+                      uppercase
+                      tracking-[0.18em]
+                      font-bold
+                      text-[#81786b]
+                    "
+                  >
+                    AI Dashboard
+                  </p>
+
+                  <h2 className="text-lg font-semibold text-[#302d28] mt-1">
+                    Live Evaluation
+                  </h2>
+
+                  <p className="text-xs text-[#817a70] mt-1">
+                    Your performance as the
+                    interview progresses.
+                  </p>
+
+                </div>
+
+                {/* ACTUAL EVALUATION */}
+
+                <EvaluationPanel />
+
+              </div>
+
+            </aside>
+
+          )}
+
+        </div>
+
+        {/* ====================================================
+            MOBILE LIVE EVALUATION
+        ==================================================== */}
+
+        {showEvaluation && (
+
+          <div className="lg:hidden mt-6">
+
+            <div className="mb-3">
+
+              <p
+                className="
+                  text-[10px]
+                  uppercase
+                  tracking-[0.18em]
+                  font-bold
+                  text-[#81786b]
+                "
+              >
+                AI Dashboard
+              </p>
+
+              <h2 className="text-lg font-semibold text-[#302d28] mt-1">
+                Live Evaluation
+              </h2>
+
+              <p className="text-xs text-[#817a70] mt-1">
+                Your performance as the
+                interview progresses.
+              </p>
+
+            </div>
 
             <EvaluationPanel />
 
           </div>
 
-        </div>
-      )}
+        )}
 
+      </main>
 
       {/* ======================================================
-          FINISH CONFIRMATION MODAL
+          MOBILE STATUS BAR
       ====================================================== */}
 
-      {showFinishConfirmation && (
-        <div
-          className="
-            fixed
-            inset-0
-            z-50
-            flex
-            items-center
-            justify-center
-            px-4
-            bg-slate-950/70
-            backdrop-blur-sm
-          "
-        >
+      <div
+        className="
+          md:hidden
+          fixed
+          bottom-0
+          left-0
+          right-0
+          z-40
+          bg-[#f1ede4]/95
+          backdrop-blur-xl
+          border-t
+          border-[#d8d1c5]
+          px-4
+          py-2.5
+        "
+      >
 
-          <div
-            className="
-              w-full
-              max-w-md
-              rounded-2xl
-              bg-slate-900
-              border
-              border-slate-800
-              shadow-2xl
-              p-6
-            "
-          >
+        <div className="flex items-center justify-between">
 
-            {/* ICON */}
+          <div className="flex items-center gap-2">
 
-            <div
-              className="
-                w-11
-                h-11
-                rounded-xl
-                bg-purple-500/10
-                border
-                border-purple-500/20
-                flex
-                items-center
-                justify-center
-                mb-4
-              "
-            >
-              <span className="text-purple-300 text-lg">
-                ?
-              </span>
-            </div>
+            <span
+              className={`
+                w-2
+                h-2
+                rounded-full
 
-
-            <h2 className="text-lg font-semibold text-white">
-              End this interview?
-            </h2>
-
-
-            <p
-              className="
-                mt-2
-                text-sm
-                text-slate-400
-                leading-relaxed
-              "
-            >
-              Your completed responses will be evaluated
-              and used to generate your interview report.
-              The report will focus only on the questions
-              you actually answered.
-            </p>
-
-
-            {/* ==================================================
-                ANSWER PROGRESS
-            ================================================== */}
-
-            <div
-              className="
-                mt-4
-                p-3
-                rounded-xl
-                bg-slate-950/60
-                border
-                border-slate-800
-              "
-            >
-
-              <div className="flex items-center justify-between">
-
-                <span className="text-xs text-slate-500">
-                  Questions answered
-                </span>
-
-                <span className="text-xs font-semibold text-purple-300">
-                  {
-                    actualAnsweredMainQuestionCount
-                  }
-                  /
-                  {totalQuestions}
-                </span>
-
-              </div>
-
-
-              <div className="mt-2 w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
-
-                <div
-                  className="
-                    h-full
-                    rounded-full
-                    bg-gradient-to-r
-                    from-purple-500
-                    to-indigo-500
-                    transition-all
-                  "
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (actualAnsweredMainQuestionCount /
-                        totalQuestions) *
-                        100
-                    )}%`,
-                  }}
-                />
-
-              </div>
-
-            </div>
-
-
-            {/* ==================================================
-                EARLY FINISH MESSAGE
-            ================================================== */}
-
-            {actualAnsweredMainQuestionCount <
-              totalQuestions && (
-              <div
-                className="
-                  mt-3
-                  p-3
-                  rounded-xl
-                  bg-indigo-500/5
-                  border
-                  border-indigo-500/20
-                "
-              >
-
-                <p className="text-xs text-indigo-300 leading-relaxed">
-                  You are ending the interview before
-                  completing all {totalQuestions} questions.
-                  That's okay — your report will be based
-                  on your answered questions only.
-                </p>
-
-              </div>
-            )}
-
-
-            {/* ==================================================
-                ACTIONS
-            ================================================== */}
-
-            <div
-              className="
-                flex
-                flex-col-reverse
-                sm:flex-row
-                gap-3
-                mt-6
-              "
-            >
-
-              <button
-                type="button"
-                onClick={
-                  cancelFinishInterview
+                ${
+                  isThinking
+                    ? "bg-[#a58d6d] animate-pulse"
+                    : "bg-[#687a65]"
                 }
-                className="
-                  flex-1
-                  py-2.5
-                  rounded-xl
-                  text-sm
-                  font-medium
-                  text-slate-300
-                  bg-slate-950
-                  border
-                  border-slate-800
-                  hover:border-slate-700
-                  hover:text-white
-                  transition
-                "
-              >
-                Continue Interview
-              </button>
+              `}
+            />
 
-
-              <button
-                type="button"
-                onClick={
-                  confirmFinishInterview
-                }
-                disabled={
-                  !minimumQuestionsCompleted
-                }
-                className="
-                  flex-1
-                  py-2.5
-                  rounded-xl
-                  text-sm
-                  font-semibold
-                  text-white
-                  bg-gradient-to-r
-                  from-purple-600
-                  to-indigo-600
-                  hover:from-purple-500
-                  hover:to-indigo-500
-                  disabled:opacity-40
-                  disabled:cursor-not-allowed
-                  transition
-                "
-              >
-                End & View Report
-              </button>
-
-            </div>
-
-
-            {/* REQUIRED QUESTION MESSAGE */}
-
-            {!minimumQuestionsCompleted && (
-              <p className="mt-3 text-center text-[11px] text-amber-400">
-                Answer{" "}
-                {remainingRequiredQuestions} more
-                required question
-                {remainingRequiredQuestions === 1
-                  ? ""
-                  : "s"}{" "}
-                to finish the interview.
-              </p>
-            )}
+            <span className="text-xs font-medium text-[#625d54]">
+              {statusText}
+            </span>
 
           </div>
 
+          <span className="text-[11px] text-[#8a8379]">
+            {answeredMainQuestions}/
+            {MINIMUM_ANSWERED_QUESTIONS}
+            {" "}required
+          </span>
+
         </div>
-      )}
+
+      </div>
 
     </div>
   );

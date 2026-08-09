@@ -1,23 +1,31 @@
 const TopicCard = ({ topics = [] }) => {
-  const topicData = Array.isArray(topics) ? topics : [];
+  const topicData = Array.isArray(topics)
+    ? topics
+    : [];
 
   return (
-    <section className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl">
-      {/* Header */}
-
+    <section
+      className="
+        rounded-[22px]
+        border border-[#ddd7cd]
+        bg-[#faf8f4]
+        p-5 sm:p-6 lg:p-7
+        shadow-[0_8px_30px_rgba(72,65,54,0.05)]
+      "
+    >
       <div className="mb-5">
-        <h2 className="text-base sm:text-lg font-semibold text-white">
+        <h2 className="text-base sm:text-lg font-semibold text-[#302d28]">
           Topic Breakdown
         </h2>
 
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-[#817a70] mt-1">
           Detailed breakdown based only on answered questions
         </p>
       </div>
 
       {topicData.length === 0 ? (
-        <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/70">
-          <p className="text-xs text-slate-500">
+        <div className="p-4 rounded-xl bg-[#f5f2ec] border border-[#e2dcd2]">
+          <p className="text-xs text-[#817a70]">
             No answered questions are available for topic analysis.
           </p>
         </div>
@@ -32,41 +40,36 @@ const TopicCard = ({ topics = [] }) => {
               <div
                 key={item.id || `${item.topic}-${index}`}
                 className="
-                  bg-slate-950/60
-                  border
-                  border-slate-800/80
+                  bg-[#f6f3ed]
+                  border border-[#ded8ce]
                   rounded-2xl
                   p-5
-                  shadow-xl
                   space-y-3
-                  flex
-                  flex-col
+                  flex flex-col
                   justify-between
-                  hover:border-purple-500/40
-                  transition
-                  duration-200
+                  hover:border-[#c9c2b6]
+                  transition-all duration-200
                 "
               >
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-sm text-white truncate">
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <h3 className="font-semibold text-sm text-[#302d28] truncate">
                       {item.topic || "Technical"}
                     </h3>
 
                     <span
                       className={`
                         flex-shrink-0
-                        text-[10px]
+                        text-[9px]
                         font-bold
                         uppercase
-                        px-2
-                        py-0.5
+                        px-2 py-1
                         rounded-full
                         border
                         ${
                           isStrong
-                            ? "bg-purple-500/10 text-purple-300 border-purple-500/20"
-                            : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                            ? "bg-[#e8efe5] text-[#52634f] border-[#cbd8c6]"
+                            : "bg-[#f0e8dc] text-[#806f58] border-[#dfd0bb]"
                         }
                       `}
                     >
@@ -75,21 +78,21 @@ const TopicCard = ({ topics = [] }) => {
                   </div>
 
                   <div className="flex items-baseline gap-2 mb-3">
-                    <span className="text-2xl font-extrabold text-white">
+                    <span className="text-2xl font-bold text-[#25231f]">
                       {item.score || 0}%
                     </span>
 
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-[#817a70]">
                       Score
                     </span>
                   </div>
 
-                  <div className="space-y-2 border-t border-slate-800/60 pt-3 text-xs">
-                    <div className="flex items-start gap-1.5 text-emerald-300">
+                  <div className="space-y-3 border-t border-[#e1dbd1] pt-3 text-xs">
+                    <div className="flex items-start gap-2 text-[#52634f]">
                       <span className="font-bold">✓</span>
 
-                      <span>
-                        <strong className="text-slate-300">
+                      <span className="leading-relaxed">
+                        <strong className="text-[#4d4942]">
                           Strength:
                         </strong>{" "}
                         {item.strength ||
@@ -97,11 +100,11 @@ const TopicCard = ({ topics = [] }) => {
                       </span>
                     </div>
 
-                    <div className="flex items-start gap-1.5 text-amber-300">
+                    <div className="flex items-start gap-2 text-[#806f58]">
                       <span className="font-bold">⚠</span>
 
-                      <span>
-                        <strong className="text-slate-300">
+                      <span className="leading-relaxed">
+                        <strong className="text-[#4d4942]">
                           Weakness:
                         </strong>{" "}
                         {item.weakness ||
@@ -111,11 +114,9 @@ const TopicCard = ({ topics = [] }) => {
                   </div>
                 </div>
 
-                {/* Feedback */}
-
                 {item.feedback && (
-                  <div className="pt-3 border-t border-slate-800/60">
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                  <div className="pt-3 border-t border-[#e1dbd1]">
+                    <p className="text-[11px] text-[#817a70] leading-relaxed">
                       {item.feedback}
                     </p>
                   </div>

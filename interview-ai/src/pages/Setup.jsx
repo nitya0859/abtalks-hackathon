@@ -66,13 +66,9 @@ const interviewTypes = [
 
 const Setup = () => {
   const navigate = useNavigate();
-
   const { setupInterview } = useInterview();
 
-  // ==========================================================
-  // CANDIDATE PROFILE
-  // ==========================================================
-
+  // Candidate
   const [candidateName, setCandidateName] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
   const [degree, setDegree] = useState("");
@@ -80,39 +76,21 @@ const Setup = () => {
   const [institution, setInstitution] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
 
-  // ==========================================================
-  // RESUME
-  // ==========================================================
-
+  // Resume
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeText, setResumeText] = useState("");
 
-  // ==========================================================
-  // INTERVIEW CONFIGURATION
-  // ==========================================================
-
+  // Interview configuration
   const [role, setRole] = useState("");
   const [customRole, setCustomRole] = useState("");
-
-  const [difficulty, setDifficulty] =
-    useState("Medium");
-
-  const [selectedTopics, setSelectedTopics] =
-    useState([]);
-
-  const [customSkills, setCustomSkills] =
-    useState([]);
-
-  const [interviewType, setInterviewType] =
-    useState("");
-
+  const [difficulty, setDifficulty] = useState("Medium");
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [customSkills, setCustomSkills] = useState([]);
+  const [interviewType, setInterviewType] = useState("");
   const [customInterviewPrompt, setCustomInterviewPrompt] =
     useState("");
 
-  // ==========================================================
-  // UI STATE
-  // ==========================================================
-
+  // UI
   const [errorMsg, setErrorMsg] = useState("");
   const [profileExtracted, setProfileExtracted] =
     useState(false);
@@ -132,60 +110,45 @@ const Setup = () => {
     try {
       const profile = analyzeResume(text);
 
-      console.log("================================");
-      console.log("PROFILE AUTOFILL");
+      console.log("EVOKE PROFILE AUTOFILL");
       console.log(profile);
-      console.log("================================");
 
-      // Candidate name
       if (profile.candidateName?.trim()) {
         setCandidateName(profile.candidateName);
       }
 
-      // Education
       if (profile.educationLevel) {
-        setEducationLevel(
-          profile.educationLevel
-        );
+        setEducationLevel(profile.educationLevel);
       }
 
-      // Degree
       if (profile.degree) {
         setDegree(profile.degree);
       }
 
-      // Field of study
       if (profile.fieldOfStudy) {
-        setFieldOfStudy(
-          profile.fieldOfStudy
-        );
+        setFieldOfStudy(profile.fieldOfStudy);
       }
 
-      // Institution
       if (profile.institution?.trim()) {
         setInstitution(profile.institution);
       }
 
-      // Graduation year
       if (profile.graduationYear) {
         setGraduationYear(
           String(profile.graduationYear)
         );
       }
 
-      // Suggested role
       if (profile.suggestedRole) {
         setRole(profile.suggestedRole);
       }
 
-      // Skills
       if (Array.isArray(profile.skills)) {
         setSelectedTopics(profile.skills);
       }
 
       setProfileExtracted(true);
       setErrorMsg("");
-
     } catch (error) {
       console.error(
         "Resume analysis failed:",
@@ -201,7 +164,7 @@ const Setup = () => {
   };
 
   // ==========================================================
-  // RESUME FILE CHANGE
+  // RESUME CHANGE
   // ==========================================================
 
   const handleResumeChange = (file) => {
@@ -220,15 +183,13 @@ const Setup = () => {
   };
 
   // ==========================================================
-  // TOPIC TOGGLE
+  // TOPICS
   // ==========================================================
 
   const handleTopicToggle = (topic) => {
     setSelectedTopics((previous) =>
       previous.includes(topic)
-        ? previous.filter(
-            (item) => item !== topic
-          )
+        ? previous.filter((item) => item !== topic)
         : [...previous, topic]
     );
 
@@ -236,45 +197,32 @@ const Setup = () => {
   };
 
   // ==========================================================
-  // CUSTOM SKILL
+  // CUSTOM SKILLS
   // ==========================================================
 
   const handleAddCustomSkill = (skill) => {
     const trimmedSkill = skill.trim();
 
-    if (!trimmedSkill) {
-      return;
-    }
+    if (!trimmedSkill) return;
 
     setCustomSkills((previous) => {
-      const alreadyExists = previous.some(
+      const exists = previous.some(
         (item) =>
           item.toLowerCase() ===
           trimmedSkill.toLowerCase()
       );
 
-      if (alreadyExists) {
-        return previous;
-      }
+      if (exists) return previous;
 
-      return [
-        ...previous,
-        trimmedSkill,
-      ];
+      return [...previous, trimmedSkill];
     });
 
     setErrorMsg("");
   };
 
-  // ==========================================================
-  // REMOVE CUSTOM SKILL
-  // ==========================================================
-
   const handleRemoveCustomSkill = (skill) => {
     setCustomSkills((previous) =>
-      previous.filter(
-        (item) => item !== skill
-      )
+      previous.filter((item) => item !== skill)
     );
   };
 
@@ -285,20 +233,12 @@ const Setup = () => {
   const handleStartInterview = (event) => {
     event.preventDefault();
 
-    // --------------------------------------------------------
-    // Candidate name
-    // --------------------------------------------------------
-
     if (!candidateName.trim()) {
       setErrorMsg(
         "Please enter your candidate name."
       );
       return;
     }
-
-    // --------------------------------------------------------
-    // Resume
-    // --------------------------------------------------------
 
     if (!resumeFile) {
       setErrorMsg(
@@ -307,20 +247,12 @@ const Setup = () => {
       return;
     }
 
-    // --------------------------------------------------------
-    // Resume extraction
-    // --------------------------------------------------------
-
     if (!resumeText.trim()) {
       setErrorMsg(
         "Please wait for your resume to finish analyzing."
       );
       return;
     }
-
-    // --------------------------------------------------------
-    // Education
-    // --------------------------------------------------------
 
     if (!educationLevel) {
       setErrorMsg(
@@ -357,10 +289,6 @@ const Setup = () => {
       return;
     }
 
-    // --------------------------------------------------------
-    // Role
-    // --------------------------------------------------------
-
     if (!role) {
       setErrorMsg(
         "Please select an interview role."
@@ -378,20 +306,12 @@ const Setup = () => {
       return;
     }
 
-    // --------------------------------------------------------
-    // Difficulty
-    // --------------------------------------------------------
-
     if (!difficulty) {
       setErrorMsg(
         "Please select a difficulty level."
       );
       return;
     }
-
-    // --------------------------------------------------------
-    // Skills
-    // --------------------------------------------------------
 
     if (
       selectedTopics.length === 0 &&
@@ -403,20 +323,12 @@ const Setup = () => {
       return;
     }
 
-    // --------------------------------------------------------
-    // Interview type
-    // --------------------------------------------------------
-
     if (!interviewType) {
       setErrorMsg(
         "Please select an interview type."
       );
       return;
     }
-
-    // --------------------------------------------------------
-    // Custom instructions
-    // --------------------------------------------------------
 
     if (
       interviewType === "custom" &&
@@ -428,48 +340,26 @@ const Setup = () => {
       return;
     }
 
-    // ========================================================
-    // EVERYTHING VALID
-    // ========================================================
-
     setErrorMsg("");
 
-    // ========================================================
-    // SAVE TO CONTEXT
-    // ========================================================
-
     setupInterview({
-      // Candidate
-      candidateName:
-        candidateName.trim(),
+      candidateName: candidateName.trim(),
 
       educationLevel,
-
       degree,
-
       fieldOfStudy,
-
-      institution:
-        institution.trim(),
-
+      institution: institution.trim(),
       graduationYear,
 
-      // Resume
       resumeFile,
-
       resumeText,
 
-      // Role
       role,
+      customRole: customRole.trim(),
 
-      customRole:
-        customRole.trim(),
-
-      // Interview configuration
       difficulty,
 
       selectedTopics,
-
       customSkills,
 
       interviewType,
@@ -477,10 +367,6 @@ const Setup = () => {
       customInterviewPrompt:
         customInterviewPrompt.trim(),
     });
-
-    // ========================================================
-    // GO TO INTERVIEW
-    // ========================================================
 
     navigate("/interview");
   };
@@ -492,78 +378,71 @@ const Setup = () => {
   return (
     <div className="evoke-setup-page">
 
-      {/* ====================================================
-          BACKGROUND
-      ==================================================== */}
-
+      {/* Architectural background */}
       <div className="evoke-setup-grid" />
 
-      <div
-        className="
-          evoke-setup-glow
-          evoke-glow-one
-        "
-      />
+      <div className="evoke-setup-glow evoke-glow-one" />
+      <div className="evoke-setup-glow evoke-glow-two" />
 
-      <div
-        className="
-          evoke-setup-glow
-          evoke-glow-two
-        "
-      />
-
-      {/* ====================================================
+      {/* ======================================================
           HEADER
-      ==================================================== */}
+      ====================================================== */}
 
       <header className="evoke-setup-header">
-
         <Logo />
 
         <div className="evoke-step-indicator">
-
           <span className="evoke-step-active">
             01
           </span>
 
-          <span>/</span>
-
-          <span>
-            03
+          <span className="evoke-step-divider">
+            /
           </span>
+
+          <span>03</span>
 
           <span className="evoke-step-label">
             Configure interview
           </span>
-
         </div>
-
       </header>
 
+      {/* ======================================================
+          INTRO STRIP
+      ====================================================== */}
 
-      {/* ====================================================
-          MAIN WORKSPACE
-      ==================================================== */}
+      <div className="evoke-intro">
+        <div>
+          <span className="evoke-intro-kicker">
+            EVOKE / INTERVIEW STUDIO
+          </span>
+
+          <p>
+            Build an interview that feels like
+            yours.
+          </p>
+        </div>
+
+        <span className="evoke-intro-index">
+          2026
+        </span>
+      </div>
+
+      {/* ======================================================
+          WORKSPACE
+      ====================================================== */}
 
       <main className="evoke-workspace">
 
-        {/* ==================================================
-            LEFT PANEL — PROFILE
-        ================================================== */}
+        {/* ====================================================
+            LEFT — PROFILE
+        ==================================================== */}
 
-        <section
-          className="
-            evoke-panel
-            evoke-profile-panel
-          "
-        >
-
-          {/* Panel heading */}
+        <section className="evoke-panel evoke-profile-panel">
 
           <div className="evoke-panel-heading">
-
             <div>
-
               <span className="evoke-overline">
                 01 — PROFILE
               </span>
@@ -571,93 +450,50 @@ const Setup = () => {
               <h1>
                 Tell us about
                 <br />
-                <span>
-                  yourself.
-                </span>
+                <span>yourself.</span>
               </h1>
-
             </div>
 
             <span className="evoke-panel-number">
               A
             </span>
-
           </div>
 
-
-          {/* =================================================
-              CANDIDATE PROFILE
-          ================================================= */}
-
+          {/* Candidate */}
           <div className="evoke-section">
-
             <span className="evoke-section-label">
               Candidate
             </span>
 
             <CandidateInput
               value={candidateName}
-              onChange={
-                setCandidateName
-              }
-
-              educationLevel={
-                educationLevel
-              }
-
+              onChange={setCandidateName}
+              educationLevel={educationLevel}
               onEducationLevelChange={
                 setEducationLevel
               }
-
               degree={degree}
-
-              onDegreeChange={
-                setDegree
-              }
-
-              fieldOfStudy={
-                fieldOfStudy
-              }
-
+              onDegreeChange={setDegree}
+              fieldOfStudy={fieldOfStudy}
               onFieldOfStudyChange={
                 setFieldOfStudy
               }
-
-              institution={
-                institution
-              }
-
+              institution={institution}
               onInstitutionChange={
                 setInstitution
               }
-
-              graduationYear={
-                graduationYear
-              }
-
+              graduationYear={graduationYear}
               onGraduationYearChange={
                 setGraduationYear
               }
             />
-
           </div>
 
-
-          {/* =================================================
-              RESUME
-          ================================================= */}
-
-          <div
-            className="
-              evoke-section
-              evoke-resume-section
-            "
-          >
+          {/* Resume */}
+          <div className="evoke-section evoke-resume-section">
 
             <div className="evoke-section-header">
-
               <div>
-
                 <span className="evoke-section-label">
                   Resume
                 </span>
@@ -665,7 +501,6 @@ const Setup = () => {
                 <span className="evoke-required">
                   REQUIRED
                 </span>
-
               </div>
 
               {profileExtracted && (
@@ -673,75 +508,45 @@ const Setup = () => {
                   ✓ Profile extracted
                 </span>
               )}
-
             </div>
 
-
-            {/* Folder */}
-
             <div className="evoke-folder">
-
               <div className="evoke-folder-tab">
-                RESUME
+                RESUME / 01
               </div>
 
               <div className="evoke-folder-body">
-
                 <ResumeUpload
                   file={resumeFile}
-                  onChange={
-                    handleResumeChange
-                  }
+                  onChange={handleResumeChange}
                   onTextExtracted={
                     handleResumeTextExtracted
                   }
                 />
-
               </div>
-
             </div>
-
           </div>
 
-
-          {/* =================================================
-              ERROR
-          ================================================= */}
-
+          {/* Error */}
           {errorMsg && (
             <div className="evoke-error">
-
               <span className="evoke-error-icon">
                 !
               </span>
 
-              <span>
-                {errorMsg}
-              </span>
-
+              <span>{errorMsg}</span>
             </div>
           )}
-
         </section>
 
+        {/* ====================================================
+            RIGHT — CONFIGURATION
+        ==================================================== */}
 
-        {/* ==================================================
-            RIGHT PANEL — INTERVIEW
-        ================================================== */}
-
-        <section
-          className="
-            evoke-panel
-            evoke-config-panel
-          "
-        >
-
-          {/* Panel heading */}
+        <section className="evoke-panel evoke-config-panel">
 
           <div className="evoke-panel-heading">
-
             <div>
-
               <span className="evoke-overline">
                 02 — INTERVIEW
               </span>
@@ -749,200 +554,117 @@ const Setup = () => {
               <h2>
                 Shape your
                 <br />
-                <span>
-                  experience.
-                </span>
+                <span>experience.</span>
               </h2>
-
             </div>
 
             <span className="evoke-panel-number">
               B
             </span>
-
           </div>
 
-
-          {/* =================================================
-              FORM
-          ================================================= */}
-
           <form
-            onSubmit={
-              handleStartInterview
-            }
+            onSubmit={handleStartInterview}
             className="evoke-config-form"
           >
 
-            {/* =================================================
-                ROLE
-            ================================================= */}
-
+            {/* Role */}
             <div className="evoke-config-block">
-
               <div className="evoke-block-heading">
-
-                <span>
-                  Interview Role
-                </span>
+                <span>Interview Role</span>
 
                 <span className="evoke-block-hint">
                   What are you preparing for?
                 </span>
-
               </div>
 
               <RoleSelect
                 value={role}
-                onChange={
-                  setRole
-                }
-
-                customRole={
-                  customRole
-                }
-
+                onChange={setRole}
+                customRole={customRole}
                 onCustomRoleChange={
                   setCustomRole
                 }
               />
-
             </div>
 
-
-            {/* =================================================
-                DIFFICULTY
-            ================================================= */}
-
+            {/* Difficulty */}
             <div className="evoke-config-block">
-
               <div className="evoke-block-heading">
-
-                <span>
-                  Difficulty
-                </span>
+                <span>Difficulty</span>
 
                 <span className="evoke-block-hint">
                   Adjust the challenge
                 </span>
-
               </div>
 
               <DifficultySelector
-                selected={
-                  difficulty
-                }
-
-                onSelect={
-                  setDifficulty
-                }
+                selected={difficulty}
+                onSelect={setDifficulty}
               />
-
             </div>
 
-
-            {/* =================================================
-                INTERVIEW FOCUS
-            ================================================= */}
-
+            {/* Focus */}
             <div className="evoke-config-block">
-
               <div className="evoke-block-heading">
-
-                <span>
-                  Interview Focus
-                </span>
+                <span>Interview Focus</span>
 
                 <span className="evoke-block-hint">
                   Select one or more
                 </span>
-
               </div>
 
               <FocusSelector
-                selectedTopics={
-                  selectedTopics
-                }
-
-                onToggle={
-                  handleTopicToggle
-                }
-
-                customSkills={
-                  customSkills
-                }
-
+                selectedTopics={selectedTopics}
+                onToggle={handleTopicToggle}
+                customSkills={customSkills}
                 onAddCustomSkill={
                   handleAddCustomSkill
                 }
-
                 onRemoveCustomSkill={
                   handleRemoveCustomSkill
                 }
               />
-
             </div>
 
-
-            {/* =================================================
-                INTERVIEW TYPE
-            ================================================= */}
-
+            {/* Interview type */}
             <div className="evoke-config-block">
-
               <div className="evoke-block-heading">
-
-                <span>
-                  Interview Type
-                </span>
+                <span>Interview Type</span>
 
                 <span className="evoke-block-hint">
                   Choose your experience
                 </span>
-
               </div>
 
-
               <div className="evoke-type-grid">
-
                 {interviewTypes.map(
                   (type, index) => {
-
                     const isSelected =
-                      interviewType ===
-                      type.id;
+                      interviewType === type.id;
 
                     return (
                       <button
-                        key={
-                          type.id
-                        }
-
+                        key={type.id}
                         type="button"
-
                         onClick={() => {
                           setInterviewType(
                             type.id
                           );
-
                           setErrorMsg("");
                         }}
-
                         className={`
                           evoke-type-card
-
                           ${
                             isSelected
                               ? "evoke-type-selected"
                               : ""
                           }
-
                           ${
                             index % 3 === 1
                               ? "evoke-note-tilt-left"
                               : ""
                           }
-
                           ${
                             index % 3 === 2
                               ? "evoke-note-tilt-right"
@@ -950,9 +672,7 @@ const Setup = () => {
                           }
                         `}
                       >
-
                         <div className="evoke-type-top">
-
                           <span className="evoke-type-label">
                             {type.label}
                           </span>
@@ -963,73 +683,47 @@ const Setup = () => {
                               ✦ RECOMMENDED
                             </span>
                           )}
-
                         </div>
-
 
                         <p>
                           {type.description}
                         </p>
-
                       </button>
                     );
                   }
                 )}
-
               </div>
 
-
-              {/* =================================================
-                  CUSTOM INTERVIEW PROMPT
-              ================================================= */}
-
-              {interviewType ===
-                "custom" && (
+              {interviewType === "custom" && (
                 <div className="evoke-custom-prompt">
-
                   <label>
                     What should the interviewer
                     focus on?
                   </label>
 
                   <textarea
-                    value={
-                      customInterviewPrompt
-                    }
-
+                    value={customInterviewPrompt}
                     onChange={(event) =>
                       setCustomInterviewPrompt(
                         event.target.value
                       )
                     }
-
                     rows={3}
-
                     placeholder="Focus on React performance, system design, debugging..."
                   />
-
                 </div>
               )}
-
             </div>
 
-
-            {/* =================================================
-                ACTION AREA
-            ================================================= */}
-
+            {/* Action */}
             <div className="evoke-action-area">
 
-              {/* Duration */}
-
               <div className="evoke-duration">
-
-                <span className="evoke-duration-dot">
+                <span className="evoke-duration-icon">
                   ◷
                 </span>
 
                 <div>
-
                   <span>
                     Estimated duration
                   </span>
@@ -1037,19 +731,13 @@ const Setup = () => {
                   <strong>
                     ~20 minutes
                   </strong>
-
                 </div>
-
               </div>
-
-
-              {/* Start */}
 
               <button
                 type="submit"
                 className="evoke-start-button"
               >
-
                 <span>
                   Start Interview
                 </span>
@@ -1057,17 +745,12 @@ const Setup = () => {
                 <span className="evoke-arrow">
                   →
                 </span>
-
               </button>
-
             </div>
 
           </form>
-
         </section>
-
       </main>
-
     </div>
   );
 };

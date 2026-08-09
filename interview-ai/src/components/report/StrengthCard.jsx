@@ -4,24 +4,30 @@ const StrengthCard = ({ strengths = [] }) => {
     : [];
 
   return (
-    <section className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl">
-      {/* Header */}
-
+    <section
+      className="
+        rounded-[22px]
+        border border-[#ddd7cd]
+        bg-[#faf8f4]
+        p-5 sm:p-6
+        shadow-[0_8px_30px_rgba(72,65,54,0.05)]
+      "
+    >
       <div className="mb-5">
-        <h2 className="text-base sm:text-lg font-semibold text-white">
+        <h2 className="text-base sm:text-lg font-semibold text-[#302d28]">
           Key Strengths
         </h2>
 
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-[#817a70] mt-1">
           Verified competencies from your interview responses
         </p>
       </div>
 
       {visibleStrengths.length === 0 ? (
-        <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/70">
-          <p className="text-xs text-slate-500">
-            No specific strengths were identified from the answered
-            questions.
+        <div className="p-4 rounded-xl bg-[#f5f2ec] border border-[#e2dcd2]">
+          <p className="text-xs text-[#817a70]">
+            No specific strengths were identified from the
+            answered questions.
           </p>
         </div>
       ) : (
@@ -30,34 +36,28 @@ const StrengthCard = ({ strengths = [] }) => {
             <div
               key={`${item}-${index}`}
               className="
-                p-3.5
-                rounded-2xl
-                bg-emerald-500/10
-                border
-                border-emerald-500/20
+                p-4
+                rounded-xl
+                bg-[#e8efe5]
+                border border-[#cbd8c6]
                 text-xs
                 font-medium
-                text-emerald-300
+                text-[#52634f]
                 flex
                 items-start
                 gap-2.5
-                shadow-sm
               "
             >
               <span
                 className="
-                  w-4
-                  h-4
+                  w-5 h-5
                   rounded-full
-                  bg-emerald-500/20
-                  text-emerald-400
-                  flex
-                  items-center
-                  justify-center
+                  bg-[#d6e2d2]
+                  text-[#5f705d]
+                  flex items-center justify-center
                   font-bold
                   text-[10px]
                   flex-shrink-0
-                  mt-0.5
                 "
               >
                 ✓

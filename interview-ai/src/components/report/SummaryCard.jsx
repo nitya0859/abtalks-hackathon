@@ -2,18 +2,42 @@ const SummaryCard = ({
   summaryText = "You demonstrated strong architectural reasoning and system design skills. Your understanding of retrieval systems and vector databases is solid, but deployment strategies require additional practice.",
 }) => {
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 shadow-xl space-y-3">
-      <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase tracking-wider">
-        <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-        </svg>
-        <span>Executive Interview Summary</span>
+    <section
+      className="
+        rounded-[22px]
+        border border-[#ddd7cd]
+        bg-[#faf8f4]
+        p-5 sm:p-6 lg:p-7
+        shadow-[0_8px_30px_rgba(72,65,54,0.05)]
+      "
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-[#625d54] text-sm">▣</span>
+
+        <h2
+          className="
+            text-[11px]
+            uppercase
+            tracking-[0.15em]
+            font-bold
+            text-[#625d54]
+          "
+        >
+          Executive Interview Summary
+        </h2>
       </div>
 
-      <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-sans font-medium">
+      <p
+        className="
+          text-sm sm:text-base
+          text-[#3f3b35]
+          leading-relaxed
+          font-medium
+        "
+      >
         "{summaryText}"
       </p>
-    </div>
+    </section>
   );
 };
 

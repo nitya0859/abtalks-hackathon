@@ -3,29 +3,16 @@ import { useInterview } from "../../context/InterviewContext";
 
 const ActionButtons = () => {
   const navigate = useNavigate();
-
   const { resetInterview } = useInterview();
-
-  // ==========================================================
-  // DOWNLOAD / PRINT REPORT
-  // ==========================================================
 
   const handleDownload = () => {
     window.print();
   };
 
-  // ==========================================================
-  // RETAKE INTERVIEW
-  // ==========================================================
-
   const handleRetake = () => {
     resetInterview();
     navigate("/setup");
   };
-
-  // ==========================================================
-  // DASHBOARD
-  // ==========================================================
 
   const handleDashboard = () => {
     resetInterview();
@@ -33,18 +20,27 @@ const ActionButtons = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800/80">
-
-      {/* ====================================================
-          LEFT ACTIONS
-      ==================================================== */}
-
+    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* LEFT ACTIONS */}
       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-
-        {/* Download */}
+        {/* DOWNLOAD */}
         <button
+          type="button"
           onClick={handleDownload}
-          className="w-full sm:w-auto py-3 px-6 rounded-xl font-semibold text-xs text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 transition cursor-pointer flex items-center justify-center gap-2"
+          className="
+            w-full sm:w-auto
+            inline-flex items-center justify-center gap-2
+            px-5 py-3
+            rounded-xl
+            border border-[#d7d1c6]
+            bg-[#faf8f4]
+            text-[#4d4942]
+            text-xs font-semibold
+            hover:bg-[#eeeae2]
+            hover:border-[#c9c2b6]
+            transition-all duration-200
+            cursor-pointer
+          "
         >
           <svg
             className="w-4 h-4"
@@ -60,15 +56,26 @@ const ActionButtons = () => {
             />
           </svg>
 
-          <span>
-            Download Report
-          </span>
+          Download Report
         </button>
 
-        {/* Retake */}
+        {/* RETAKE */}
         <button
+          type="button"
           onClick={handleRetake}
-          className="w-full sm:w-auto py-3 px-6 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-lg shadow-purple-900/30 cursor-pointer flex items-center justify-center gap-2"
+          className="
+            w-full sm:w-auto
+            inline-flex items-center justify-center gap-2
+            px-5 py-3
+            rounded-xl
+            bg-[#292722]
+            text-[#faf8f4]
+            text-xs font-semibold
+            hover:bg-[#3a3731]
+            shadow-sm
+            transition-all duration-200
+            cursor-pointer
+          "
         >
           <svg
             className="w-4 h-4"
@@ -84,30 +91,28 @@ const ActionButtons = () => {
             />
           </svg>
 
-          <span>
-            Retake Interview
-          </span>
+          Retake Interview
         </button>
-
       </div>
 
-      {/* ====================================================
-          DASHBOARD
-      ==================================================== */}
-
+      {/* DASHBOARD */}
       <button
+        type="button"
         onClick={handleDashboard}
-        className="w-full sm:w-auto py-3 px-6 rounded-xl font-semibold text-xs text-slate-400 hover:text-slate-200 transition cursor-pointer flex items-center justify-center gap-1.5"
+        className="
+          w-full sm:w-auto
+          inline-flex items-center justify-center gap-1.5
+          px-3 py-2
+          text-xs font-semibold
+          text-[#746e64]
+          hover:text-[#292722]
+          transition-colors
+          cursor-pointer
+        "
       >
-        <span>
-          Back to Dashboard
-        </span>
-
-        <span>
-          →
-        </span>
+        Back to Dashboard
+        <span className="text-sm">→</span>
       </button>
-
     </div>
   );
 };

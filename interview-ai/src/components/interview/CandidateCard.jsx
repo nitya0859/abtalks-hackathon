@@ -17,21 +17,13 @@ const CandidateCard = () => {
     fieldOfStudy,
     institution,
     graduationYear,
-    role,
-    customRole,
+    effectiveRole,
     difficulty,
     selectedTopics,
     customSkills,
     interviewType,
   } = useInterview();
 
-  // Use custom role when "Other" is selected
-  const effectiveRole =
-    role === "Other"
-      ? customRole
-      : role;
-
-  // Combine selected predefined skills + custom skills
   const allSelectedSkills = [
     ...(Array.isArray(selectedTopics)
       ? selectedTopics
@@ -41,7 +33,6 @@ const CandidateCard = () => {
       : []),
   ];
 
-  // Candidate initials
   const initials = candidateName
     ? candidateName
         .trim()
@@ -57,46 +48,127 @@ const CandidateCard = () => {
     "Technical Interview";
 
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 shadow-xl">
+    <div
+      className="
+        rounded-2xl
+        bg-[#faf8f3]
+        border
+        border-[#25231f]/10
+        p-5
+        shadow-[0_18px_45px_rgba(66,58,47,0.07)]
+      "
+    >
+      {/* ==================================================
+          CANDIDATE
+      ================================================== */}
 
-      {/* Candidate Header */}
       <div className="flex items-center gap-3">
-
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-violet-700 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-purple-900/30 flex-shrink-0">
+
+        <div
+          className="
+            w-11
+            h-11
+            rounded-xl
+            bg-[#292621]
+            text-[#f6f1e8]
+            flex
+            items-center
+            justify-center
+            text-sm
+            font-bold
+            flex-shrink-0
+          "
+        >
           {initials}
         </div>
 
-        {/* Candidate Information */}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm text-white truncate">
+        {/* Name */}
+
+        <div className="min-w-0 flex-1">
+          <h3
+            className="
+              text-sm
+              font-semibold
+              text-[#25231f]
+              truncate
+            "
+          >
             {candidateName || "Candidate"}
           </h3>
 
-          <p className="text-xs text-slate-400 truncate">
+          <p
+            className="
+              text-[11px]
+              text-[#777269]
+              truncate
+              mt-0.5
+            "
+          >
             {effectiveRole || "Technical Role"}
           </p>
         </div>
 
         {/* Difficulty */}
-        <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 flex-shrink-0">
+
+        <span
+          className="
+            px-2
+            py-1
+            rounded-lg
+            bg-[#25231f]/5
+            border
+            border-[#25231f]/10
+            text-[9px]
+            font-bold
+            uppercase
+            tracking-wider
+            text-[#625d55]
+            flex-shrink-0
+          "
+        >
           {difficulty || "Medium"}
         </span>
       </div>
 
-      {/* Education */}
+      {/* ==================================================
+          EDUCATION
+      ================================================== */}
+
       {(degree ||
         fieldOfStudy ||
         institution ||
         graduationYear) && (
-        <div className="mt-4 pt-3 border-t border-slate-800/70">
-
-          <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">
+        <div
+          className="
+            mt-5
+            pt-4
+            border-t
+            border-[#25231f]/10
+          "
+        >
+          <p
+            className="
+              text-[9px]
+              uppercase
+              tracking-[0.14em]
+              font-bold
+              text-[#aaa399]
+              mb-2
+            "
+          >
             Education
           </p>
 
           {(degree || fieldOfStudy) && (
-            <p className="text-xs text-slate-300">
+            <p
+              className="
+                text-xs
+                font-medium
+                text-[#403c35]
+                leading-relaxed
+              "
+            >
               {[degree, fieldOfStudy]
                 .filter(Boolean)
                 .join(" · ")}
@@ -104,8 +176,16 @@ const CandidateCard = () => {
           )}
 
           {institution && (
-            <p className="text-[11px] text-slate-500 truncate mt-1">
+            <p
+              className="
+                text-[10px]
+                text-[#777269]
+                truncate
+                mt-1
+              "
+            >
               {institution}
+
               {graduationYear
                 ? ` · ${graduationYear}`
                 : ""}
@@ -114,47 +194,87 @@ const CandidateCard = () => {
         </div>
       )}
 
-      {/* Interview Configuration */}
-      <div className="mt-4 pt-3 border-t border-slate-800/70">
+      {/* ==================================================
+          INTERVIEW CONFIG
+      ================================================== */}
 
+      <div
+        className="
+          mt-5
+          pt-4
+          border-t
+          border-[#25231f]/10
+        "
+      >
         <div className="flex items-center justify-between gap-2">
-
-          <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+          <p
+            className="
+              text-[9px]
+              uppercase
+              tracking-[0.14em]
+              font-bold
+              text-[#aaa399]
+            "
+          >
             Interview
           </p>
 
-          <span className="text-[10px] text-purple-300 truncate">
+          <span
+            className="
+              text-[9px]
+              font-semibold
+              text-[#625d55]
+              truncate
+            "
+          >
             {interviewTypeLabel}
           </span>
-
         </div>
 
         {/* Skills */}
-        {allSelectedSkills.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
 
+        {allSelectedSkills.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
             {allSelectedSkills
               .slice(0, 5)
               .map((skill) => (
                 <span
                   key={skill}
-                  className="px-2 py-1 rounded-lg bg-slate-950/60 border border-slate-800 text-[10px] text-slate-400"
+                  className="
+                    px-2
+                    py-1
+                    rounded-lg
+                    bg-[#25231f]/[0.035]
+                    border
+                    border-[#25231f]/10
+                    text-[9px]
+                    text-[#777269]
+                  "
                 >
                   {skill}
                 </span>
               ))}
 
             {allSelectedSkills.length > 5 && (
-              <span className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[10px] text-purple-300">
+              <span
+                className="
+                  px-2
+                  py-1
+                  rounded-lg
+                  bg-[#25231f]/5
+                  border
+                  border-[#25231f]/10
+                  text-[9px]
+                  text-[#625d55]
+                  font-semibold
+                "
+              >
                 +{allSelectedSkills.length - 5}
               </span>
             )}
-
           </div>
         )}
-
       </div>
-
     </div>
   );
 };

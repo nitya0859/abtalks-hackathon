@@ -13,11 +13,17 @@ const AnswerBox = () => {
 
   const [answer, setAnswer] = useState("");
 
-  // Clear textarea whenever the question changes
-  // or when switching between answer/follow-up.
+  // =========================================================
+  // CLEAR ANSWER WHEN QUESTION / PHASE CHANGES
+  // =========================================================
+
   useEffect(() => {
     setAnswer("");
   }, [currentQuestion?.id, isFollowUpPhase]);
+
+  // =========================================================
+  // SUBMIT
+  // =========================================================
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -35,133 +41,329 @@ const AnswerBox = () => {
     setAnswer("");
   };
 
+  // =========================================================
+  // CMD / CTRL + ENTER
+  // =========================================================
+
+  const handleKeyDown = (e) => {
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      e.key === "Enter"
+    ) {
+      handleSubmit(e);
+    }
+  };
+
   const isDisabled =
     !answer.trim() || isThinking;
 
+  const wordCount = answer
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl shadow-xl overflow-hidden">
+    <div className="bg-[#faf8f4]">
 
-      {/* ================================
-          HEADER
-      ================================= */}
-
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800/70">
-
-        <div className="flex items-center gap-2">
-
-          <svg
-            className="w-4 h-4 text-purple-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 6h16M4 12h16M4 18h10"
-            />
-          </svg>
-
-          <span className="text-sm font-semibold text-slate-200">
-            {isFollowUpPhase
-              ? "Follow-up Response"
-              : "Candidate Response Workspace"}
-          </span>
-
-        </div>
-
-        <span className="text-[11px] text-slate-500">
-          Markdown enabled
-        </span>
-
-      </div>
-
-      {/* ================================
+      {/* =====================================================
           FOLLOW-UP QUESTION
-      ================================= */}
+      ===================================================== */}
 
       {isFollowUpPhase && followUpQuestion && (
-        <div className="px-5 py-4 bg-purple-500/5 border-b border-purple-500/10">
+        <div className="px-5 sm:px-6 py-4 bg-[#f1ede5] border-b border-[#e1dbd1]">
 
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-purple-400 mb-2">
-            Follow-up Probe
+          <p
+            className="
+              text-[10px]
+              uppercase
+              tracking-[0.15em]
+              font-bold
+              text-[#81776a]
+              mb-1.5
+            "
+          >
+            Follow-up
           </p>
 
-          <p className="text-sm leading-relaxed text-slate-300">
+          <p className="text-sm text-[#4d4942] leading-relaxed">
             {followUpQuestion}
           </p>
 
         </div>
       )}
 
-      {/* ================================
-          TEXTAREA
-      ================================= */}
+
+      {/* =====================================================
+          FORM
+      ===================================================== */}
 
       <form onSubmit={handleSubmit}>
 
+        {/* ===================================================
+            EDITOR HEADER
+        =================================================== */}
+
+        <div
+          className="
+            h-[55px]
+            flex
+            items-center
+            justify-between
+            px-5
+            sm:px-6
+            border-b
+            border-[#e2ddd4]
+          "
+        >
+
+          {/* Left */}
+
+          <div className="flex items-center gap-2.5">
+
+            <div
+              className="
+                w-7
+                h-7
+                rounded-full
+                border
+                border-[#d8d2c8]
+                bg-[#f0ede7]
+                flex
+                items-center
+                justify-center
+                text-[#625d54]
+              "
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  d="M4 6h16M4 12h16M4 18h10"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+
+            <span
+              className="
+                text-sm
+                font-semibold
+                text-[#38352f]
+              "
+            >
+              {isFollowUpPhase
+                ? "Follow-up Response"
+                : "Your Response"}
+            </span>
+
+          </div>
+
+
+          {/* Right */}
+
+          <span
+            className="
+              hidden
+              sm:block
+              text-[10px]
+              sm:text-[11px]
+              text-[#8a8379]
+              font-medium
+            "
+          >
+            Markdown & pseudocode supported
+          </span>
+
+        </div>
+
+
+        {/* ===================================================
+            TEXT AREA
+        =================================================== */}
+
         <textarea
           value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e) =>
+            setAnswer(e.target.value)
+          }
+          onKeyDown={handleKeyDown}
           disabled={isThinking}
           maxLength={2000}
           rows={8}
           placeholder={
             isThinking
-              ? "Analyzing your response..."
+              ? "Evoke is analyzing your response..."
               : isFollowUpPhase
               ? "Answer the follow-up question. Explain your reasoning clearly..."
               : "Type your response here... Explain your approach, reasoning, trade-offs, and technical decisions."
           }
-          className="w-full min-h-[220px] resize-none bg-transparent px-5 py-5 text-sm text-slate-200 placeholder-slate-600 outline-none disabled:opacity-60"
+          className="
+            w-full
+            min-h-[220px]
+            sm:min-h-[270px]
+            resize-none
+            bg-transparent
+            px-5
+            sm:px-6
+            py-5
+            text-sm
+            text-[#35322d]
+            placeholder-[#aaa49a]
+            leading-relaxed
+            outline-none
+            disabled:opacity-60
+          "
         />
 
-        {/* ================================
+
+        {/* ===================================================
             FOOTER
-        ================================= */}
+        =================================================== */}
 
-        <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800/70">
+        <div
+          className="
+            min-h-[58px]
+            flex
+            items-center
+            justify-between
+            gap-4
+            px-5
+            sm:px-6
+            py-3
+            border-t
+            border-[#e2ddd4]
+          "
+        >
 
-          <span className="text-[11px] font-mono text-slate-500">
-            {answer.length} / 2000 characters
-          </span>
+          {/* Character count */}
 
-          <button
-            type="submit"
-            disabled={isDisabled}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-              isDisabled
-                ? "bg-purple-600/30 text-purple-300/50 cursor-not-allowed"
-                : "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/30 active:scale-[0.98] cursor-pointer"
-            }`}
-          >
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-[#8b847a]">
 
-            <span>
-              {isThinking
-                ? "Analyzing..."
-                : isFollowUpPhase
-                ? "Submit Follow-up"
-                : "Submit Answer"}
+            <span className="font-mono">
+              {answer.length} / 2000
             </span>
 
-            {!isThinking && (
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
-            )}
+            <span className="text-[#c0bab0]">
+              •
+            </span>
 
-          </button>
+            <span>
+              {wordCount} words
+            </span>
+
+          </div>
+
+
+          {/* Submit side */}
+
+          <div className="flex items-center gap-3">
+
+            {/* Shortcut */}
+
+            <span
+              className="
+                hidden
+                sm:block
+                text-[10px]
+                text-[#a09a91]
+              "
+            >
+              ⌘ Enter
+            </span>
+
+
+            {/* Submit */}
+
+            <button
+              type="submit"
+              disabled={isDisabled}
+              className={`
+                flex
+                items-center
+                gap-2
+                px-4
+                sm:px-5
+                py-2.5
+                rounded-full
+                text-xs
+                sm:text-sm
+                font-semibold
+                transition-all
+                duration-200
+
+                ${
+                  isDisabled
+                    ? `
+                      bg-[#e0ddd7]
+                      text-[#aaa69f]
+                      cursor-not-allowed
+                    `
+                    : `
+                      bg-[#d5d2cb]
+                      hover:bg-[#c7c3bb]
+                      text-[#514d46]
+                      active:scale-[0.98]
+                    `
+                }
+              `}
+            >
+
+              {isThinking ? (
+                <>
+                  <span
+                    className="
+                      w-3.5
+                      h-3.5
+                      border-2
+                      border-[#8e897f]
+                      border-t-transparent
+                      rounded-full
+                      animate-spin
+                    "
+                  />
+
+                  <span>
+                    Evaluating...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    {isFollowUpPhase
+                      ? "Submit Follow-up"
+                      : "Submit Answer"}
+                  </span>
+
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      d="M5 12h14"
+                      strokeLinecap="round"
+                    />
+
+                    <path
+                      d="m13 6 6 6-6 6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </>
+              )}
+
+            </button>
+
+          </div>
 
         </div>
 

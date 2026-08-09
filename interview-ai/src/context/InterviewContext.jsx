@@ -25,11 +25,11 @@ const API_BASE_URL =
 // ============================================================
 
 // Maximum number of MAIN questions.
-// Follow-ups do not count toward this limit.
+// Follow-up questions do NOT count toward this limit.
 const MAIN_QUESTION_LIMIT = 6;
 
 // Minimum number of MAIN questions that must be answered
-// before the candidate can manually finish the interview.
+// before the candidate can manually finish.
 const MINIMUM_ANSWERED_QUESTIONS = 3;
 
 // Interview duration = 20 minutes
@@ -114,17 +114,24 @@ const normalizeQuestion = (
   index = 0,
   isFollowUp = false
 ) => {
+  // ----------------------------------------------------------
+  // NO QUESTION
+  // ----------------------------------------------------------
+
   if (!rawQuestion) {
     return {
       ...EMPTY_QUESTION,
 
       id: `question-${index + 1}`,
 
-      isFollowUp,
+      isFollowUp: Boolean(isFollowUp),
     };
   }
 
-  // AI returned a plain string
+  // ----------------------------------------------------------
+  // AI RETURNED A PLAIN STRING
+  // ----------------------------------------------------------
+
   if (typeof rawQuestion === "string") {
     return {
       id: `question-${index + 1}`,
@@ -139,9 +146,15 @@ const normalizeQuestion = (
 
       expectedConcepts: [],
 
-      isFollowUp,
+      // IMPORTANT:
+      // The frontend controls whether this is a follow-up.
+      isFollowUp: Boolean(isFollowUp),
     };
   }
+
+  // ----------------------------------------------------------
+  // AI RETURNED AN OBJECT
+  // ----------------------------------------------------------
 
   return {
     id:
@@ -172,13 +185,21 @@ const normalizeQuestion = (
         ? rawQuestion.expectedConcepts
         : [],
 
-    isFollowUp:
-      Boolean(
-        rawQuestion.isFollowUp ||
-          isFollowUp ||
-          rawQuestion.topic ===
-            "Follow-up"
-      ),
+    // ========================================================
+    // IMPORTANT FIX
+    // ========================================================
+    //
+    // DO NOT trust rawQuestion.isFollowUp from the AI.
+    //
+    // The frontend explicitly decides:
+    //
+    // false -> MAIN QUESTION
+    // true  -> FOLLOW-UP
+    //
+    // This prevents the first/main question from appearing
+    // as "FOLLOW-UP".
+    //
+    isFollowUp: Boolean(isFollowUp),
   };
 };
 
@@ -186,9 +207,7 @@ const normalizeQuestion = (
 // SCORE NORMALIZER
 // ============================================================
 
-const normalizeScores = (
-  evaluation
-) => {
+const normalizeScores = (evaluation) => {
   if (!evaluation) {
     return {
       ...DEFAULT_SCORES,
@@ -204,9 +223,7 @@ const normalizeScores = (
       const value =
         Number(scores?.[key]);
 
-      if (
-        Number.isFinite(value)
-      ) {
+      if (Number.isFinite(value)) {
         return Math.max(
           0,
           Math.min(
@@ -275,9 +292,7 @@ const normalizeEvaluation = (
       question?.difficulty || "Medium",
 
     isFollowUp:
-      Boolean(
-        question?.isFollowUp
-      ),
+      Boolean(question?.isFollowUp),
 
     scores,
 
@@ -501,8 +516,6 @@ export const InterviewProvider = ({
     });
 
   /*
-   * IMPORTANT:
-   *
    * scoreHistory stores evaluations for MAIN questions only.
    *
    * Follow-ups can still receive AI evaluation and feedback,
@@ -548,6 +561,7 @@ export const InterviewProvider = ({
    * "early"
    * "time_limit"
    */
+
   const [
     interviewCompletionReason,
     setInterviewCompletionReason,
@@ -590,10 +604,18 @@ export const InterviewProvider = ({
       ]
     );
 
+  // ==========================================================
+  // TOTAL QUESTIONS
+  // ==========================================================
+
   // Always six MAIN questions.
-  // Follow-ups do not count.
+  // Follow-ups do NOT count.
   const totalQuestions =
     MAIN_QUESTION_LIMIT;
+
+  // ==========================================================
+  // CURRENT QUESTION
+  // ==========================================================
 
   const currentQuestion =
     questions[
@@ -604,31 +626,64 @@ export const InterviewProvider = ({
   // QUESTION COUNTS
   // ==========================================================
 
+  // Number of MAIN questions generated so far.
   const mainQuestionCount =
     questions.filter(
       (question) =>
-        !question.isFollowUp
+        !question?.isFollowUp
     ).length;
 
-  /*
-   * Only answered MAIN questions count here.
-   *
-   * Follow-up answers are intentionally ignored.
-   */
+  // ==========================================================
+  // ANSWERED MAIN QUESTIONS
+  // ==========================================================
+
   const answeredMainQuestionCount =
     questions.filter(
-      (question) =>
-        !question.isFollowUp &&
-        Boolean(
-          answers?.[question.id]?.trim()
-        )
+      (question) => {
+        if (question?.isFollowUp) {
+          return false;
+        }
+
+        const answer =
+          answers?.[question.id];
+
+        if (typeof answer === "string") {
+          return answer.trim().length > 0;
+        }
+
+        if (
+          answer &&
+          typeof answer === "object"
+        ) {
+          if (
+            typeof answer.answer ===
+            "string"
+          ) {
+            return (
+              answer.answer.trim().length >
+              0
+            );
+          }
+
+          if (
+            typeof answer.text ===
+            "string"
+          ) {
+            return (
+              answer.text.trim().length >
+              0
+            );
+          }
+        }
+
+        return false;
+      }
     ).length;
 
-  /*
-   * Only MAIN question evaluations are stored in
-   * scoreHistory, so this count represents the number
-   * of questions actually evaluated for the report.
-   */
+  // ==========================================================
+  // EVALUATED QUESTIONS
+  // ==========================================================
+
   const evaluatedQuestionCount =
     scoreHistory.length;
 
@@ -659,9 +714,6 @@ export const InterviewProvider = ({
 
               setIsFollowUpPhase(false);
 
-              /*
-               * The timer ended the interview.
-               */
               setInterviewCompletionReason(
                 "time_limit"
               );
@@ -719,11 +771,9 @@ export const InterviewProvider = ({
     // --------------------------------------------------------
     // SCORE HISTORY
     // --------------------------------------------------------
-    //
+
     // Follow-ups are evaluated for feedback,
-    // but they should NOT count as independent
-    // main interview questions in the final report.
-    //
+    // but are NOT added to main question history.
 
     if (!question?.isFollowUp) {
       setScoreHistory(
@@ -988,6 +1038,8 @@ export const InterviewProvider = ({
           }
         );
 
+      // IMPORTANT:
+      // Explicitly mark first question as MAIN.
       const generatedQuestion =
         normalizeQuestion(
           response?.question,
@@ -1032,9 +1084,7 @@ export const InterviewProvider = ({
 
       setIsTimerRunning(false);
 
-      setInterviewCompleted(
-        false
-      );
+      setInterviewCompleted(false);
     } finally {
       setIsThinking(false);
     }
@@ -1231,7 +1281,7 @@ export const InterviewProvider = ({
     const mainQuestions =
       questions.filter(
         (question) =>
-          !question.isFollowUp
+          !question?.isFollowUp
       );
 
     // --------------------------------------------------------
@@ -1293,11 +1343,14 @@ export const InterviewProvider = ({
               ] ||
               "",
 
+            // Main question number.
             questionNumber:
               mainQuestions.length + 1,
           }
         );
 
+      // IMPORTANT:
+      // Explicitly mark generated question as MAIN.
       const nextQuestion =
         normalizeQuestion(
           response?.question,
@@ -1423,11 +1476,6 @@ export const InterviewProvider = ({
       // ------------------------------------------------------
       // SAVE FOLLOW-UP EVALUATION
       // ------------------------------------------------------
-      //
-      // saveEvaluation() updates liveScores and notes,
-      // but deliberately does NOT add follow-ups to
-      // scoreHistory.
-      //
 
       saveEvaluation(
         evaluation,
@@ -1443,7 +1491,7 @@ export const InterviewProvider = ({
       const mainQuestions =
         questions.filter(
           (question) =>
-            !question.isFollowUp
+            !question?.isFollowUp
         );
 
       if (
@@ -1520,11 +1568,47 @@ export const InterviewProvider = ({
 
     const answeredCount =
       questions.filter(
-        (question) =>
-          !question.isFollowUp &&
-          Boolean(
-            answers?.[question.id]?.trim()
-          )
+        (question) => {
+          if (question?.isFollowUp) {
+            return false;
+          }
+
+          const answer =
+            answers?.[question.id];
+
+          if (typeof answer === "string") {
+            return (
+              answer.trim().length > 0
+            );
+          }
+
+          if (
+            answer &&
+            typeof answer === "object"
+          ) {
+            if (
+              typeof answer.answer ===
+              "string"
+            ) {
+              return (
+                answer.answer.trim()
+                  .length > 0
+              );
+            }
+
+            if (
+              typeof answer.text ===
+              "string"
+            ) {
+              return (
+                answer.text.trim()
+                  .length > 0
+              );
+            }
+          }
+
+          return false;
+        }
       ).length;
 
     // --------------------------------------------------------

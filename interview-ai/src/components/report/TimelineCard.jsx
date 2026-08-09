@@ -1,48 +1,106 @@
-const timelineQuestions = [
-  { id: 1, title: "Prompt Engineering & JSON Schemas", rating: "Good", topic: "Prompt Engineering", color: "text-purple-400 border-purple-500/20 bg-purple-500/10" },
-  { id: 2, title: "RAG Hybrid Retrieval & Weighting", rating: "Excellent", topic: "RAG", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10" },
-  { id: 3, title: "Vector DB Eviction & Indexing", rating: "Needs Improvement", topic: "Vector Database", color: "text-amber-400 border-amber-500/20 bg-amber-500/10" },
-  { id: 4, title: "Model Context Protocol Tool Calling", rating: "Good", topic: "MCP", color: "text-purple-400 border-purple-500/20 bg-purple-500/10" },
-  { id: 5, title: "System Scale & Production Load Balancer", rating: "Excellent", topic: "Deployment", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10" },
-];
+const TimelineCard = ({ timeline = [] }) => {
+  const timelineData = Array.isArray(timeline)
+    ? timeline
+    : [];
 
-const TimelineCard = () => {
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
-      <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
-        <div>
-          <h3 className="text-base font-bold text-white tracking-tight">
-            AI Interview Timeline
-          </h3>
-          <p className="text-xs text-slate-400">Question-by-question evaluation history</p>
+    <section
+      className="
+        rounded-[22px]
+        border border-[#ddd7cd]
+        bg-[#faf8f4]
+        p-5 sm:p-6 lg:p-7
+        shadow-[0_8px_30px_rgba(72,65,54,0.05)]
+      "
+    >
+      <div className="mb-5">
+        <h2 className="text-base sm:text-lg font-semibold text-[#302d28]">
+          AI Interview Timeline
+        </h2>
+
+        <p className="text-xs text-[#817a70] mt-1">
+          Question-by-question evaluation history
+        </p>
+      </div>
+
+      {timelineData.length === 0 ? (
+        <div className="p-4 rounded-xl bg-[#f5f2ec] border border-[#e2dcd2]">
+          <p className="text-xs text-[#817a70]">
+            No evaluated questions are available yet.
+          </p>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          {timelineData.map((item, index) => {
+            const score = Number(item.score) || 0;
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {timelineQuestions.map((q) => (
-          <div
-            key={q.id}
-            className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2 flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1">
-                <span>Q{q.id}</span>
-                <span className="text-slate-500">{q.topic}</span>
+            const statusStyle =
+              score >= 80
+                ? "text-[#52634f] bg-[#e8efe5] border-[#cbd8c6]"
+                : score >= 65
+                ? "text-[#625d54] bg-[#ebe6dc] border-[#d8d1c5]"
+                : "text-[#806f58] bg-[#f0e8dc] border-[#dfd0bb]";
+
+            return (
+              <div
+                key={item.id || index}
+                className="
+                  p-4
+                  rounded-xl
+                  bg-[#f6f3ed]
+                  border border-[#ded8ce]
+                  space-y-3
+                  flex flex-col
+                  justify-between
+                  min-h-[155px]
+                "
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[10px] font-bold text-[#817a70]">
+                      Q{item.questionNumber || index + 1}
+                    </span>
+
+                    <span className="text-[10px] text-[#999188] truncate">
+                      {item.topic || "Technical"}
+                    </span>
+                  </div>
+
+                  <h4 className="text-xs font-semibold text-[#302d28] leading-snug line-clamp-3">
+                    {item.question ||
+                      item.title ||
+                      `Question ${index + 1}`}
+                  </h4>
+
+                  <p className="text-xl font-bold text-[#25231f] mt-3">
+                    {score}%
+                  </p>
+                </div>
+
+                <span
+                  className={`
+                    inline-block
+                    w-full
+                    text-center
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    px-2 py-1.5
+                    rounded-lg
+                    border
+                    ${statusStyle}
+                  `}
+                >
+                  {item.rating ||
+                    item.status ||
+                    "Developing"}
+                </span>
               </div>
-              <h4 className="text-xs font-medium text-white leading-snug line-clamp-2">
-                {q.title}
-              </h4>
-            </div>
-
-            <span
-              className={`inline-block w-full text-center text-[10px] font-bold uppercase px-2 py-1 rounded-lg border ${q.color}`}
-            >
-              {q.rating}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 };
 

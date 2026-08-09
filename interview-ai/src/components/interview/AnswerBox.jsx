@@ -3,137 +3,373 @@ import { useInterview } from "../../context/InterviewContext";
 
 const AnswerBox = () => {
   const {
-    currentQuestionIndex,
+    currentQuestion,
     isThinking,
     isFollowUpPhase,
-    currentQuestion,
+    followUpQuestion,
     submitAnswer,
     submitFollowUp,
   } = useInterview();
 
-  const [text, setText] = useState("");
+  const [answer, setAnswer] = useState("");
 
-  // Clear the input whenever the question or interview phase changes
+  // =========================================================
+  // CLEAR ANSWER WHEN QUESTION / PHASE CHANGES
+  // =========================================================
+
   useEffect(() => {
-    setText("");
-  }, [currentQuestionIndex, isFollowUpPhase]);
+    setAnswer("");
+  }, [currentQuestion?.id, isFollowUpPhase]);
+
+  // =========================================================
+  // SUBMIT
+  // =========================================================
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!text.trim() || isThinking) return;
-
-    if (isFollowUpPhase) {
-      submitFollowUp(text);
-    } else {
-      submitAnswer(text);
+    if (!answer.trim() || isThinking) {
+      return;
     }
 
-    setText("");
+    if (isFollowUpPhase) {
+      submitFollowUp(answer);
+    } else {
+      submitAnswer(answer);
+    }
+
+    setAnswer("");
   };
 
-  const placeholder = isFollowUpPhase
-    ? "Answer the follow-up question. Explain your reasoning clearly..."
-    : "Type your response here... Include architecture details, trade-offs, and design patterns.";
+  // =========================================================
+  // CMD / CTRL + ENTER
+  // =========================================================
 
-  const buttonText = isThinking
-    ? "Analyzing..."
-    : isFollowUpPhase
-      ? "Submit Follow-up"
-      : "Submit Answer";
+  const handleKeyDown = (e) => {
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      e.key === "Enter"
+    ) {
+      handleSubmit(e);
+    }
+  };
+
+  const isDisabled =
+    !answer.trim() || isThinking;
+
+  const wordCount = answer
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="overflow-hidden rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-xl">
+    <div className="bg-[#faf8f4]">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/60">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4 text-purple-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h10"
-              />
-            </svg>
+      {/* =====================================================
+          FOLLOW-UP QUESTION
+      ===================================================== */}
 
-            <span className="text-xs font-semibold text-slate-300">
-              {isFollowUpPhase
-                ? "Follow-up Response"
-                : "Candidate Response Workspace"}
-            </span>
-          </div>
+      {isFollowUpPhase && followUpQuestion && (
+        <div className="px-5 sm:px-6 py-4 bg-[#f1ede5] border-b border-[#e1dbd1]">
 
-          <span className="text-[10px] text-slate-500">
-            Markdown enabled
-          </span>
-        </div>
-
-        {/* Follow-up indicator */}
-        {isFollowUpPhase && (
-          <div className="px-4 py-2 bg-purple-500/5 border-b border-purple-500/10">
-            <span className="text-[11px] font-semibold text-purple-300">
-              Follow-up Probe
-            </span>
-            <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-              {currentQuestion.followUp}
-            </p>
-          </div>
-        )}
-
-        {/* Textarea */}
-        <textarea
-          rows={7}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          disabled={isThinking}
-          placeholder={placeholder}
-          className="w-full p-4 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-xs sm:text-sm font-mono leading-relaxed resize-y disabled:opacity-50"
-        />
-
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-950/60 border-t border-slate-800/60">
-
-          <span className="text-[11px] text-slate-500 font-mono">
-            {text.length} / 2000 characters
-          </span>
-
-          <button
-            type="submit"
-            disabled={!text.trim() || isThinking}
-            className="py-2.5 px-6 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/30 active:scale-[0.98] transition cursor-pointer flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          <p
+            className="
+              text-[10px]
+              uppercase
+              tracking-[0.15em]
+              font-bold
+              text-[#81776a]
+              mb-1.5
+            "
           >
-            {isThinking && (
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            )}
+            Follow-up
+          </p>
 
-            <span>{buttonText}</span>
+          <p className="text-sm text-[#4d4942] leading-relaxed">
+            {followUpQuestion}
+          </p>
 
-            {!isThinking && (
+        </div>
+      )}
+
+
+      {/* =====================================================
+          FORM
+      ===================================================== */}
+
+      <form onSubmit={handleSubmit}>
+
+        {/* ===================================================
+            EDITOR HEADER
+        =================================================== */}
+
+        <div
+          className="
+            h-[55px]
+            flex
+            items-center
+            justify-between
+            px-5
+            sm:px-6
+            border-b
+            border-[#e2ddd4]
+          "
+        >
+
+          {/* Left */}
+
+          <div className="flex items-center gap-2.5">
+
+            <div
+              className="
+                w-7
+                h-7
+                rounded-full
+                border
+                border-[#d8d2c8]
+                bg-[#f0ede7]
+                flex
+                items-center
+                justify-center
+                text-[#625d54]
+              "
+            >
               <svg
-                className="w-3.5 h-3.5"
-                fill="none"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
+                fill="none"
                 stroke="currentColor"
-                strokeWidth={2.5}
+                strokeWidth="2"
               >
                 <path
+                  d="M4 6h16M4 12h16M4 18h10"
                   strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                 />
               </svg>
-            )}
-          </button>
+            </div>
+
+            <span
+              className="
+                text-sm
+                font-semibold
+                text-[#38352f]
+              "
+            >
+              {isFollowUpPhase
+                ? "Follow-up Response"
+                : "Your Response"}
+            </span>
+
+          </div>
+
+
+          {/* Right */}
+
+          <span
+            className="
+              hidden
+              sm:block
+              text-[10px]
+              sm:text-[11px]
+              text-[#8a8379]
+              font-medium
+            "
+          >
+            Markdown & pseudocode supported
+          </span>
+
         </div>
-      </div>
-    </form>
+
+
+        {/* ===================================================
+            TEXT AREA
+        =================================================== */}
+
+        <textarea
+          value={answer}
+          onChange={(e) =>
+            setAnswer(e.target.value)
+          }
+          onKeyDown={handleKeyDown}
+          disabled={isThinking}
+          maxLength={2000}
+          rows={8}
+          placeholder={
+            isThinking
+              ? "Evoke is analyzing your response..."
+              : isFollowUpPhase
+              ? "Answer the follow-up question. Explain your reasoning clearly..."
+              : "Type your response here... Explain your approach, reasoning, trade-offs, and technical decisions."
+          }
+          className="
+            w-full
+            min-h-[220px]
+            sm:min-h-[270px]
+            resize-none
+            bg-transparent
+            px-5
+            sm:px-6
+            py-5
+            text-sm
+            text-[#35322d]
+            placeholder-[#aaa49a]
+            leading-relaxed
+            outline-none
+            disabled:opacity-60
+          "
+        />
+
+
+        {/* ===================================================
+            FOOTER
+        =================================================== */}
+
+        <div
+          className="
+            min-h-[58px]
+            flex
+            items-center
+            justify-between
+            gap-4
+            px-5
+            sm:px-6
+            py-3
+            border-t
+            border-[#e2ddd4]
+          "
+        >
+
+          {/* Character count */}
+
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-[#8b847a]">
+
+            <span className="font-mono">
+              {answer.length} / 2000
+            </span>
+
+            <span className="text-[#c0bab0]">
+              •
+            </span>
+
+            <span>
+              {wordCount} words
+            </span>
+
+          </div>
+
+
+          {/* Submit side */}
+
+          <div className="flex items-center gap-3">
+
+            {/* Shortcut */}
+
+            <span
+              className="
+                hidden
+                sm:block
+                text-[10px]
+                text-[#a09a91]
+              "
+            >
+              ⌘ Enter
+            </span>
+
+
+            {/* Submit */}
+
+            <button
+              type="submit"
+              disabled={isDisabled}
+              className={`
+                flex
+                items-center
+                gap-2
+                px-4
+                sm:px-5
+                py-2.5
+                rounded-full
+                text-xs
+                sm:text-sm
+                font-semibold
+                transition-all
+                duration-200
+
+                ${
+                  isDisabled
+                    ? `
+                      bg-[#e0ddd7]
+                      text-[#aaa69f]
+                      cursor-not-allowed
+                    `
+                    : `
+                      bg-[#d5d2cb]
+                      hover:bg-[#c7c3bb]
+                      text-[#514d46]
+                      active:scale-[0.98]
+                    `
+                }
+              `}
+            >
+
+              {isThinking ? (
+                <>
+                  <span
+                    className="
+                      w-3.5
+                      h-3.5
+                      border-2
+                      border-[#8e897f]
+                      border-t-transparent
+                      rounded-full
+                      animate-spin
+                    "
+                  />
+
+                  <span>
+                    Evaluating...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    {isFollowUpPhase
+                      ? "Submit Follow-up"
+                      : "Submit Answer"}
+                  </span>
+
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      d="M5 12h14"
+                      strokeLinecap="round"
+                    />
+
+                    <path
+                      d="m13 6 6 6-6 6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </>
+              )}
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
   );
 };
 

@@ -4,9 +4,16 @@ import { useInterview } from "../context/InterviewContext";
 
 import Logo from "../components/common/Logo";
 import CandidateInput from "../components/setup/CandidateInput";
+import ResumeUpload from "../components/setup/ResumeUpload";
 import RoleSelect from "../components/setup/RoleSelect";
 import DifficultySelector from "../components/setup/DifficultySelector";
 import FocusSelector from "../components/setup/FocusSelector";
+
+import { analyzeResume } from "../utils/resumeAnalyzer";
+
+// ============================================================
+// INTERVIEW TYPES
+// ============================================================
 
 const interviewTypes = [
   {
@@ -53,128 +60,179 @@ const interviewTypes = [
   },
 ];
 
+// ============================================================
+// SETUP
+// ============================================================
+
 const Setup = () => {
   const navigate = useNavigate();
   const { setupInterview } = useInterview();
 
-  // ============================================================
-  // CANDIDATE PROFILE
-  // ============================================================
+  // Candidate
+  const [candidateName, setCandidateName] = useState("");
+  const [educationLevel, setEducationLevel] = useState("");
+  const [degree, setDegree] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [institution, setInstitution] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
 
-  const [candidateName, setCandidateName] =
+  // Resume
+  const [resumeFile, setResumeFile] = useState(null);
+  const [resumeText, setResumeText] = useState("");
+
+  // Interview configuration
+  const [role, setRole] = useState("");
+  const [customRole, setCustomRole] = useState("");
+  const [difficulty, setDifficulty] = useState("Medium");
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [customSkills, setCustomSkills] = useState([]);
+  const [interviewType, setInterviewType] = useState("");
+  const [customInterviewPrompt, setCustomInterviewPrompt] =
     useState("");
 
-  const [educationLevel, setEducationLevel] =
-    useState("");
+  // UI
+  const [errorMsg, setErrorMsg] = useState("");
+  const [profileExtracted, setProfileExtracted] =
+    useState(false);
 
-  const [degree, setDegree] =
-    useState("");
+  // ==========================================================
+  // RESUME ANALYSIS
+  // ==========================================================
 
-  const [fieldOfStudy, setFieldOfStudy] =
-    useState("");
+  const handleResumeTextExtracted = (text) => {
+    setResumeText(text || "");
 
-  const [institution, setInstitution] =
-    useState("");
+    if (!text?.trim()) {
+      setProfileExtracted(false);
+      return;
+    }
 
-  const [graduationYear, setGraduationYear] =
-    useState("");
+    try {
+      const profile = analyzeResume(text);
 
-  // ============================================================
-  // INTERVIEW CONFIGURATION
-  // ============================================================
+      console.log("EVOKE PROFILE AUTOFILL");
+      console.log(profile);
 
-  // No default role.
-  const [role, setRole] =
-    useState("");
+      if (profile.candidateName?.trim()) {
+        setCandidateName(profile.candidateName);
+      }
 
-  const [customRole, setCustomRole] =
-    useState("");
+      if (profile.educationLevel) {
+        setEducationLevel(profile.educationLevel);
+      }
 
-  // Difficulty can remain Medium by default.
-  const [difficulty, setDifficulty] =
-    useState("Medium");
+      if (profile.degree) {
+        setDegree(profile.degree);
+      }
 
-  // No skills/topics selected initially.
-  const [selectedTopics, setSelectedTopics] =
-    useState([]);
+      if (profile.fieldOfStudy) {
+        setFieldOfStudy(profile.fieldOfStudy);
+      }
 
-  const [customSkills, setCustomSkills] =
-    useState([]);
+      if (profile.institution?.trim()) {
+        setInstitution(profile.institution);
+      }
 
-  // No interview type selected initially.
-  const [interviewType, setInterviewType] =
-    useState("");
+      if (profile.graduationYear) {
+        setGraduationYear(
+          String(profile.graduationYear)
+        );
+      }
 
-  const [
-    customInterviewPrompt,
-    setCustomInterviewPrompt,
-  ] = useState("");
+      if (profile.suggestedRole) {
+        setRole(profile.suggestedRole);
+      }
 
-  const [errorMsg, setErrorMsg] =
-    useState("");
+      if (Array.isArray(profile.skills)) {
+        setSelectedTopics(profile.skills);
+      }
 
-  // ============================================================
-  // TOPIC / SKILL HANDLERS
-  // ============================================================
+      setProfileExtracted(true);
+      setErrorMsg("");
+    } catch (error) {
+      console.error(
+        "Resume analysis failed:",
+        error
+      );
+
+      setProfileExtracted(false);
+
+      setErrorMsg(
+        "Resume was read, but the profile could not be extracted automatically. Please enter the details manually."
+      );
+    }
+  };
+
+  // ==========================================================
+  // RESUME CHANGE
+  // ==========================================================
+
+  const handleResumeChange = (file) => {
+    setResumeFile(file);
+
+    if (file) {
+      setResumeText("");
+      setProfileExtracted(false);
+      setErrorMsg("");
+      return;
+    }
+
+    setResumeText("");
+    setProfileExtracted(false);
+    setErrorMsg("");
+  };
+
+  // ==========================================================
+  // TOPICS
+  // ==========================================================
 
   const handleTopicToggle = (topic) => {
-    setSelectedTopics((prev) =>
-      prev.includes(topic)
-        ? prev.filter(
-            (item) => item !== topic
-          )
-        : [...prev, topic]
+    setSelectedTopics((previous) =>
+      previous.includes(topic)
+        ? previous.filter((item) => item !== topic)
+        : [...previous, topic]
     );
 
     setErrorMsg("");
   };
 
+  // ==========================================================
+  // CUSTOM SKILLS
+  // ==========================================================
+
   const handleAddCustomSkill = (skill) => {
-    const trimmedSkill =
-      skill.trim();
+    const trimmedSkill = skill.trim();
 
-    if (!trimmedSkill) {
-      return;
-    }
+    if (!trimmedSkill) return;
 
-    setCustomSkills((prev) => {
-      if (
-        prev.some(
-          (item) =>
-            item.toLowerCase() ===
-            trimmedSkill.toLowerCase()
-        )
-      ) {
-        return prev;
-      }
+    setCustomSkills((previous) => {
+      const exists = previous.some(
+        (item) =>
+          item.toLowerCase() ===
+          trimmedSkill.toLowerCase()
+      );
 
-      return [
-        ...prev,
-        trimmedSkill,
-      ];
+      if (exists) return previous;
+
+      return [...previous, trimmedSkill];
     });
 
     setErrorMsg("");
   };
 
-  const handleRemoveCustomSkill = (
-    skill
-  ) => {
-    setCustomSkills((prev) =>
-      prev.filter(
-        (item) => item !== skill
-      )
+  const handleRemoveCustomSkill = (skill) => {
+    setCustomSkills((previous) =>
+      previous.filter((item) => item !== skill)
     );
   };
 
-  // ============================================================
+  // ==========================================================
   // START INTERVIEW
-  // ============================================================
+  // ==========================================================
 
-  const handleStartInterview = (e) => {
-    e.preventDefault();
+  const handleStartInterview = (event) => {
+    event.preventDefault();
 
-    // Candidate Name
     if (!candidateName.trim()) {
       setErrorMsg(
         "Please enter your candidate name."
@@ -182,7 +240,20 @@ const Setup = () => {
       return;
     }
 
-    // Education Level
+    if (!resumeFile) {
+      setErrorMsg(
+        "Please upload your resume before starting the interview."
+      );
+      return;
+    }
+
+    if (!resumeText.trim()) {
+      setErrorMsg(
+        "Please wait for your resume to finish analyzing."
+      );
+      return;
+    }
+
     if (!educationLevel) {
       setErrorMsg(
         "Please select your education level."
@@ -190,7 +261,6 @@ const Setup = () => {
       return;
     }
 
-    // Degree
     if (!degree) {
       setErrorMsg(
         "Please select your degree or program."
@@ -198,7 +268,6 @@ const Setup = () => {
       return;
     }
 
-    // Field of Study
     if (!fieldOfStudy) {
       setErrorMsg(
         "Please select your field of study."
@@ -206,7 +275,6 @@ const Setup = () => {
       return;
     }
 
-    // Institution
     if (!institution.trim()) {
       setErrorMsg(
         "Please enter your college or university."
@@ -214,7 +282,6 @@ const Setup = () => {
       return;
     }
 
-    // Graduation Year
     if (!graduationYear) {
       setErrorMsg(
         "Please select your graduation year."
@@ -222,7 +289,6 @@ const Setup = () => {
       return;
     }
 
-    // Interview Role
     if (!role) {
       setErrorMsg(
         "Please select an interview role."
@@ -230,7 +296,6 @@ const Setup = () => {
       return;
     }
 
-    // Custom Role
     if (
       role === "Other" &&
       !customRole.trim()
@@ -241,7 +306,6 @@ const Setup = () => {
       return;
     }
 
-    // Difficulty
     if (!difficulty) {
       setErrorMsg(
         "Please select a difficulty level."
@@ -249,7 +313,6 @@ const Setup = () => {
       return;
     }
 
-    // Skills
     if (
       selectedTopics.length === 0 &&
       customSkills.length === 0
@@ -260,7 +323,6 @@ const Setup = () => {
       return;
     }
 
-    // Interview Type
     if (!interviewType) {
       setErrorMsg(
         "Please select an interview type."
@@ -268,7 +330,6 @@ const Setup = () => {
       return;
     }
 
-    // Custom Interview Instructions
     if (
       interviewType === "custom" &&
       !customInterviewPrompt.trim()
@@ -279,382 +340,417 @@ const Setup = () => {
       return;
     }
 
-    // Everything is valid
     setErrorMsg("");
 
     setupInterview({
-      // Candidate
-      candidateName,
+      candidateName: candidateName.trim(),
 
       educationLevel,
       degree,
       fieldOfStudy,
-      institution,
+      institution: institution.trim(),
       graduationYear,
 
-      // Role
-      role,
-      customRole,
+      resumeFile,
+      resumeText,
 
-      // Interview configuration
+      role,
+      customRole: customRole.trim(),
+
       difficulty,
+
       selectedTopics,
       customSkills,
 
       interviewType,
-      customInterviewPrompt,
+
+      customInterviewPrompt:
+        customInterviewPrompt.trim(),
     });
 
     navigate("/interview");
   };
 
-  // ============================================================
+  // ==========================================================
   // RENDER
-  // ============================================================
+  // ==========================================================
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 relative overflow-hidden flex items-center justify-center px-4 sm:px-6">
-      {/* ========================================================
-          BACKGROUND
-      ========================================================= */}
+    <div className="evoke-setup-page">
 
-      <div className="absolute top-[-20%] left-[-10%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Architectural background */}
+      <div className="evoke-setup-grid" />
 
-      <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="evoke-setup-glow evoke-glow-one" />
+      <div className="evoke-setup-glow evoke-glow-two" />
 
-      {/* ========================================================
-          MAIN CONTAINER
-      ========================================================= */}
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
 
-      <div className="w-full max-w-md md:max-w-2xl relative z-10 my-auto py-6">
+      <header className="evoke-setup-header">
         <Logo />
 
-        {/* ======================================================
-            SETUP CARD
-        ====================================================== */}
+        <div className="evoke-step-indicator">
+          <span className="evoke-step-active">
+            01
+          </span>
 
-        <div className="bg-slate-900/60 backdrop-blur-2xl border border-slate-800/80 rounded-3xl p-5 sm:p-8 shadow-2xl">
+          <span className="evoke-step-divider">
+            /
+          </span>
 
-          {/* Header */}
+          <span>03</span>
 
-          <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1.5">
-              Setup Your Interview
-            </h1>
+          <span className="evoke-step-label">
+            Configure interview
+          </span>
+        </div>
+      </header>
 
-            <p className="text-slate-400 text-xs sm:text-sm">
-              Configure your interview before you begin.
-            </p>
+      {/* ======================================================
+          INTRO STRIP
+      ====================================================== */}
+
+      <div className="evoke-intro">
+        <div>
+          <span className="evoke-intro-kicker">
+            EVOKE / INTERVIEW STUDIO
+          </span>
+
+          <p>
+            Build an interview that feels like
+            yours.
+          </p>
+        </div>
+
+        <span className="evoke-intro-index">
+          2026
+        </span>
+      </div>
+
+      {/* ======================================================
+          WORKSPACE
+      ====================================================== */}
+
+      <main className="evoke-workspace">
+
+        {/* ====================================================
+            LEFT — PROFILE
+        ==================================================== */}
+
+        <section className="evoke-panel evoke-profile-panel">
+
+          <div className="evoke-panel-heading">
+            <div>
+              <span className="evoke-overline">
+                01 — PROFILE
+              </span>
+
+              <h1>
+                Tell us about
+                <br />
+                <span>yourself.</span>
+              </h1>
+            </div>
+
+            <span className="evoke-panel-number">
+              A
+            </span>
           </div>
 
-          {/* ====================================================
-              VALIDATION ERROR
-          ==================================================== */}
-
-          {errorMsg && (
-            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-              <svg
-                className="w-4 h-4 text-rose-400 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 01-18 0zm-9 3.75h.008v.008H12v-.008z"
-                />
-              </svg>
-
-              <span>
-                {errorMsg}
-              </span>
-            </div>
-          )}
-
-          {/* ====================================================
-              FORM
-          ==================================================== */}
-
-          <form
-            onSubmit={handleStartInterview}
-            className="space-y-5 sm:space-y-6"
-          >
-
-            {/* ==================================================
-                CANDIDATE PROFILE
-            ================================================== */}
+          {/* Candidate */}
+          <div className="evoke-section">
+            <span className="evoke-section-label">
+              Candidate
+            </span>
 
             <CandidateInput
               value={candidateName}
               onChange={setCandidateName}
-
-              educationLevel={
-                educationLevel
-              }
-
+              educationLevel={educationLevel}
               onEducationLevelChange={
                 setEducationLevel
               }
-
               degree={degree}
-
-              onDegreeChange={
-                setDegree
-              }
-
-              fieldOfStudy={
-                fieldOfStudy
-              }
-
+              onDegreeChange={setDegree}
+              fieldOfStudy={fieldOfStudy}
               onFieldOfStudyChange={
                 setFieldOfStudy
               }
-
-              institution={
-                institution
-              }
-
+              institution={institution}
               onInstitutionChange={
                 setInstitution
               }
-
-              graduationYear={
-                graduationYear
-              }
-
+              graduationYear={graduationYear}
               onGraduationYearChange={
                 setGraduationYear
               }
             />
+          </div>
 
-            {/* ==================================================
-                INTERVIEW ROLE
-            ================================================== */}
+          {/* Resume */}
+          <div className="evoke-section evoke-resume-section">
 
-            <RoleSelect
-              value={role}
-              onChange={setRole}
+            <div className="evoke-section-header">
+              <div>
+                <span className="evoke-section-label">
+                  Resume
+                </span>
 
-              customRole={
-                customRole
-              }
+                <span className="evoke-required">
+                  REQUIRED
+                </span>
+              </div>
 
-              onCustomRoleChange={
-                setCustomRole
-              }
-            />
+              {profileExtracted && (
+                <span className="evoke-success">
+                  ✓ Profile extracted
+                </span>
+              )}
+            </div>
 
-            {/* ==================================================
-                DIFFICULTY
-            ================================================== */}
+            <div className="evoke-folder">
+              <div className="evoke-folder-tab">
+                RESUME / 01
+              </div>
 
-            <DifficultySelector
-              selected={difficulty}
-              onSelect={
-                setDifficulty
-              }
-            />
+              <div className="evoke-folder-body">
+                <ResumeUpload
+                  file={resumeFile}
+                  onChange={handleResumeChange}
+                  onTextExtracted={
+                    handleResumeTextExtracted
+                  }
+                />
+              </div>
+            </div>
+          </div>
 
-            {/* ==================================================
-                INTERVIEW FOCUS
-            ================================================== */}
+          {/* Error */}
+          {errorMsg && (
+            <div className="evoke-error">
+              <span className="evoke-error-icon">
+                !
+              </span>
 
-            <FocusSelector
-              selectedTopics={
-                selectedTopics
-              }
+              <span>{errorMsg}</span>
+            </div>
+          )}
+        </section>
 
-              onToggle={
-                handleTopicToggle
-              }
+        {/* ====================================================
+            RIGHT — CONFIGURATION
+        ==================================================== */}
 
-              customSkills={
-                customSkills
-              }
+        <section className="evoke-panel evoke-config-panel">
 
-              onAddCustomSkill={
-                handleAddCustomSkill
-              }
+          <div className="evoke-panel-heading">
+            <div>
+              <span className="evoke-overline">
+                02 — INTERVIEW
+              </span>
 
-              onRemoveCustomSkill={
-                handleRemoveCustomSkill
-              }
-            />
+              <h2>
+                Shape your
+                <br />
+                <span>experience.</span>
+              </h2>
+            </div>
 
-            {/* ==================================================
-                INTERVIEW TYPE
-            ================================================== */}
+            <span className="evoke-panel-number">
+              B
+            </span>
+          </div>
 
-            <div className="space-y-3">
+          <form
+            onSubmit={handleStartInterview}
+            className="evoke-config-form"
+          >
 
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-slate-300">
-                  Interview Type
-                </label>
+            {/* Role */}
+            <div className="evoke-config-block">
+              <div className="evoke-block-heading">
+                <span>Interview Role</span>
 
-                <span className="text-xs text-slate-500">
+                <span className="evoke-block-hint">
+                  What are you preparing for?
+                </span>
+              </div>
+
+              <RoleSelect
+                value={role}
+                onChange={setRole}
+                customRole={customRole}
+                onCustomRoleChange={
+                  setCustomRole
+                }
+              />
+            </div>
+
+            {/* Difficulty */}
+            <div className="evoke-config-block">
+              <div className="evoke-block-heading">
+                <span>Difficulty</span>
+
+                <span className="evoke-block-hint">
+                  Adjust the challenge
+                </span>
+              </div>
+
+              <DifficultySelector
+                selected={difficulty}
+                onSelect={setDifficulty}
+              />
+            </div>
+
+            {/* Focus */}
+            <div className="evoke-config-block">
+              <div className="evoke-block-heading">
+                <span>Interview Focus</span>
+
+                <span className="evoke-block-hint">
+                  Select one or more
+                </span>
+              </div>
+
+              <FocusSelector
+                selectedTopics={selectedTopics}
+                onToggle={handleTopicToggle}
+                customSkills={customSkills}
+                onAddCustomSkill={
+                  handleAddCustomSkill
+                }
+                onRemoveCustomSkill={
+                  handleRemoveCustomSkill
+                }
+              />
+            </div>
+
+            {/* Interview type */}
+            <div className="evoke-config-block">
+              <div className="evoke-block-heading">
+                <span>Interview Type</span>
+
+                <span className="evoke-block-hint">
                   Choose your experience
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
+              <div className="evoke-type-grid">
                 {interviewTypes.map(
-                  (type) => {
+                  (type, index) => {
                     const isSelected =
-                      interviewType ===
-                      type.id;
+                      interviewType === type.id;
 
                     return (
                       <button
-                        key={
-                          type.id
-                        }
+                        key={type.id}
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
                           setInterviewType(
                             type.id
-                          )
-                        }
-                        className={`p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? "bg-purple-600/15 border-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)]"
-                            : "bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900/40"
-                        }`}
+                          );
+                          setErrorMsg("");
+                        }}
+                        className={`
+                          evoke-type-card
+                          ${
+                            isSelected
+                              ? "evoke-type-selected"
+                              : ""
+                          }
+                          ${
+                            index % 3 === 1
+                              ? "evoke-note-tilt-left"
+                              : ""
+                          }
+                          ${
+                            index % 3 === 2
+                              ? "evoke-note-tilt-right"
+                              : ""
+                          }
+                        `}
                       >
-
-                        <div className="flex items-center gap-2">
-
-                          <span
-                            className={`text-sm font-semibold ${
-                              isSelected
-                                ? "text-white"
-                                : "text-slate-200"
-                            }`}
-                          >
-                            {
-                              type.label
-                            }
+                        <div className="evoke-type-top">
+                          <span className="evoke-type-label">
+                            {type.label}
                           </span>
 
                           {type.id ===
                             "recommended" && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/20">
-                              RECOMMENDED
+                            <span className="evoke-recommended">
+                              ✦ RECOMMENDED
                             </span>
                           )}
-
                         </div>
 
-                        <p className="text-[11px] text-slate-500 leading-relaxed mt-1.5">
-                          {
-                            type.description
-                          }
+                        <p>
+                          {type.description}
                         </p>
-
                       </button>
                     );
                   }
                 )}
-
               </div>
 
-              {/* Custom Instructions */}
-
-              {interviewType ===
-                "custom" && (
-                <div className="space-y-2 pt-1">
-
-                  <label className="block text-xs font-medium text-slate-400">
-                    What should the interviewer focus on?
+              {interviewType === "custom" && (
+                <div className="evoke-custom-prompt">
+                  <label>
+                    What should the interviewer
+                    focus on?
                   </label>
 
                   <textarea
-                    value={
-                      customInterviewPrompt
-                    }
-                    onChange={(e) =>
+                    value={customInterviewPrompt}
+                    onChange={(event) =>
                       setCustomInterviewPrompt(
-                        e.target.value
+                        event.target.value
                       )
                     }
                     rows={3}
-                    placeholder="e.g. Focus on React performance, system design and real-world debugging scenarios..."
-                    className="w-full p-4 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 text-xs sm:text-sm resize-y"
+                    placeholder="Focus on React performance, system design, debugging..."
                   />
-
                 </div>
               )}
-
             </div>
 
-            {/* ==================================================
-                ESTIMATED DURATION
-            ================================================== */}
+            {/* Action */}
+            <div className="evoke-action-area">
 
-            <div className="flex flex-row items-center justify-between p-3.5 bg-slate-950/40 border border-slate-800/60 rounded-xl text-xs gap-2">
-
-              <div className="flex items-center gap-2 text-slate-400">
-
-                <svg
-                  className="w-4 h-4 text-purple-400 flex-shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-
-                <span>
-                  Estimated Duration
+              <div className="evoke-duration">
+                <span className="evoke-duration-icon">
+                  ◷
                 </span>
 
+                <div>
+                  <span>
+                    Estimated duration
+                  </span>
+
+                  <strong>
+                    ~20 minutes
+                  </strong>
+                </div>
               </div>
 
-              <span className="font-semibold text-slate-200 text-right">
-                Approximately 20 minutes
-              </span>
+              <button
+                type="submit"
+                className="evoke-start-button"
+              >
+                <span>
+                  Start Interview
+                </span>
 
+                <span className="evoke-arrow">
+                  →
+                </span>
+              </button>
             </div>
 
-            {/* ==================================================
-                START INTERVIEW
-            ================================================== */}
-
-            <button
-              type="submit"
-              className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/30 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 group"
-            >
-              <span>
-                Start Interview
-              </span>
-
-              <svg
-                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
-
-            </button>
-
           </form>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };

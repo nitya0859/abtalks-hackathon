@@ -1,1 +1,2164 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: "Geist Variable", sans-serif;
+  --font-sans: "Geist Variable", sans-serif;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ============================================================
+   EVOKE TOKENS
+   ============================================================ */
+
+:root {
+  --background: #f1ede4;
+  --foreground: #25231f;
+
+  --card: #faf8f3;
+  --card-foreground: #25231f;
+
+  --popover: #faf8f3;
+  --popover-foreground: #25231f;
+
+  --primary: #25231f;
+  --primary-foreground: #f8f5ed;
+
+  --secondary: #e8e2d7;
+  --secondary-foreground: #25231f;
+
+  --muted: #e7e1d6;
+  --muted-foreground: #777269;
+
+  --accent: #d9d0c1;
+  --accent-foreground: #25231f;
+
+  --destructive: #b94c43;
+
+  --border: #d7d0c4;
+  --input: #d7d0c4;
+  --ring: #81786b;
+
+  --chart-1: #25231f;
+  --chart-2: #625d55;
+  --chart-3: #898176;
+  --chart-4: #b3aa9d;
+  --chart-5: #d8d0c3;
+
+  --radius: 0.75rem;
+
+  --sidebar: #eee9df;
+  --sidebar-foreground: #25231f;
+  --sidebar-primary: #25231f;
+  --sidebar-primary-foreground: #f8f5ed;
+  --sidebar-accent: #e3ddd2;
+  --sidebar-accent-foreground: #25231f;
+  --sidebar-border: #d4cdc1;
+  --sidebar-ring: #81786b;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    min-width: 320px;
+  }
+
+  button,
+  input,
+  select,
+  textarea,
+  a {
+    font-family: inherit;
+  }
+}
+
+/* ============================================================
+   LANDING ANIMATIONS
+   ============================================================ */
+
+@keyframes evokeFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes evokeFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes evokeTitle {
+  from {
+    opacity: 0;
+    transform: translateY(35px) scale(0.96);
+    letter-spacing: -0.02em;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    letter-spacing: -0.075em;
+  }
+}
+
+@keyframes evokeDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(30px, 20px, 0) scale(1.05);
+  }
+}
+
+@keyframes evokeDriftSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(-35px, 25px, 0);
+  }
+}
+
+@keyframes evokeWaveOne {
+  0%,
+  100% {
+    transform: translateX(-3%) rotate(-7deg);
+  }
+
+  50% {
+    transform: translateX(3%) rotate(-4deg);
+  }
+}
+
+@keyframes evokeWaveTwo {
+  0%,
+  100% {
+    transform: translateX(2%) rotate(8deg);
+  }
+
+  50% {
+    transform: translateX(-3%) rotate(5deg);
+  }
+}
+
+@keyframes evokeWaveThree {
+  0%,
+  100% {
+    transform: translateX(-2%) rotate(-3deg);
+  }
+
+  50% {
+    transform: translateX(4%) rotate(-6deg);
+  }
+}
+
+.animate-evoke-fade {
+  animation: evokeFade 1s ease-out both;
+}
+
+.animate-evoke-fade-up {
+  animation: evokeFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-evoke-title {
+  animation: evokeTitle 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-evoke-drift {
+  animation: evokeDrift 12s ease-in-out infinite;
+}
+
+.animate-evoke-drift-slow {
+  animation: evokeDriftSlow 16s ease-in-out infinite;
+}
+
+/* ============================================================
+   LANDING WAVES
+   ============================================================ */
+
+.evoke-wave {
+  position: absolute;
+  width: 75vw;
+  height: 22vw;
+  min-height: 160px;
+  max-height: 330px;
+  border-radius: 50%;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+
+  filter: blur(1px);
+
+  box-shadow:
+    0 -25px 50px rgba(255, 255, 255, 0.35),
+    0 25px 60px rgba(214, 202, 183, 0.12);
+}
+
+.evoke-wave-one {
+  top: 14%;
+  left: -10%;
+  animation: evokeWaveOne 14s ease-in-out infinite;
+}
+
+.evoke-wave-two {
+  top: 38%;
+  right: -15%;
+  animation: evokeWaveTwo 18s ease-in-out infinite;
+}
+
+.evoke-wave-three {
+  bottom: 5%;
+  left: 5%;
+  animation: evokeWaveThree 20s ease-in-out infinite;
+}
+
+/* ============================================================
+   EVOKE BRAND
+   ============================================================ */
+
+.evoke-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: #25231f;
+}
+
+.evoke-brand-symbol {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transform: rotate(-8deg);
+  transition:
+    transform 300ms ease,
+    gap 300ms ease;
+}
+
+.evoke-brand:hover .evoke-brand-symbol {
+  transform: rotate(0deg);
+  gap: 2px;
+}
+
+.evoke-brand-symbol span {
+  display: block;
+  width: 5px;
+  height: 22px;
+  background: #25231f;
+  border-radius: 999px;
+}
+
+.evoke-brand-symbol span:nth-child(1) {
+  transform: translateY(4px) rotate(-18deg);
+}
+
+.evoke-brand-symbol span:nth-child(2) {
+  height: 26px;
+}
+
+.evoke-brand-symbol span:nth-child(3) {
+  transform: translateY(-4px) rotate(18deg);
+}
+
+.evoke-brand-word {
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: 0.19em;
+}
+
+/* ============================================================
+   SETUP PAGE
+   ============================================================ */
+
+.evoke-setup-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(184, 167, 142, 0.22),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 88% 82%,
+      rgba(122, 110, 94, 0.13),
+      transparent 28%
+    ),
+    #f1ede4;
+
+  color: #25231f;
+
+  padding:
+    0
+    clamp(18px, 4vw, 64px)
+    60px;
+}
+
+/* ============================================================
+   ARCHITECTURAL GRID
+   ============================================================ */
+
+.evoke-setup-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.52;
+
+  background-image:
+    linear-gradient(
+      rgba(54, 49, 43, 0.075) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(54, 49, 43, 0.075) 1px,
+      transparent 1px
+    );
+
+  background-size: 42px 42px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black 0%,
+      black 75%,
+      transparent 100%
+    );
+}
+
+/* Smaller technical grid overlay */
+
+.evoke-setup-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+
+  background-image:
+    linear-gradient(
+      rgba(54, 49, 43, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(54, 49, 43, 0.035) 1px,
+      transparent 1px
+    );
+
+  background-size: 9px 9px;
+
+  opacity: 0.45;
+}
+
+/* ============================================================
+   BACKGROUND GLOWS
+   ============================================================ */
+
+.evoke-setup-glow {
+  position: fixed;
+
+  width: 440px;
+  height: 440px;
+
+  border-radius: 50%;
+
+  filter: blur(120px);
+
+  pointer-events: none;
+
+  opacity: 0.26;
+
+  animation: evokeSetupFloat 15s ease-in-out infinite;
+}
+
+.evoke-glow-one {
+  top: -230px;
+  left: 8%;
+  background: #d8c7a9;
+}
+
+.evoke-glow-two {
+  bottom: -230px;
+  right: 4%;
+  background: #b7afa1;
+  animation-delay: -6s;
+}
+
+@keyframes evokeSetupFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(30px, -20px, 0);
+  }
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.evoke-setup-header {
+  position: relative;
+  z-index: 10;
+
+  height: 88px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom:
+    1px solid rgba(37, 35, 31, 0.13);
+}
+
+.evoke-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: rgba(37, 35, 31, 0.35);
+
+  font-size: 10px;
+
+  letter-spacing: 0.16em;
+
+  text-transform: uppercase;
+}
+
+.evoke-step-active {
+  color: #25231f;
+  font-weight: 800;
+}
+
+.evoke-step-divider {
+  opacity: 0.4;
+}
+
+.evoke-step-label {
+  margin-left: 10px;
+  color: rgba(37, 35, 31, 0.48);
+}
+
+/* ============================================================
+   INTRO
+   ============================================================ */
+
+.evoke-intro {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1500px;
+
+  margin: 28px auto 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.evoke-intro-kicker {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+
+  color: rgba(37, 35, 31, 0.42);
+}
+
+.evoke-intro p {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  letter-spacing: -0.02em;
+
+  color: rgba(37, 35, 31, 0.62);
+}
+
+.evoke-intro-index {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(37, 35, 31, 0.3);
+}
+
+/* ============================================================
+   WORKSPACE
+   ============================================================ */
+
+.evoke-workspace {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1500px;
+
+  margin: 22px auto 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(340px, 0.82fr)
+    minmax(560px, 1.45fr);
+
+  gap: 22px;
+
+  align-items: start;
+}
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+
+.evoke-panel {
+  position: relative;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(250, 248, 243, 0.96),
+      rgba(235, 229, 219, 0.94)
+    );
+
+  border:
+    1px solid rgba(37, 35, 31, 0.13);
+
+  border-radius: 25px;
+
+  box-shadow:
+    0 28px 70px rgba(66, 58, 47, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  backdrop-filter: blur(18px);
+
+  overflow: hidden;
+}
+
+.evoke-profile-panel,
+.evoke-config-panel {
+  padding: 30px;
+}
+
+/* ============================================================
+   PANEL HEADING
+   ============================================================ */
+
+.evoke-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 28px;
+}
+
+.evoke-overline {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: rgba(37, 35, 31, 0.42);
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.2em;
+
+  text-transform: uppercase;
+}
+
+.evoke-panel-heading h1,
+.evoke-panel-heading h2 {
+  margin: 0;
+
+  font-size:
+    clamp(31px, 3vw, 48px);
+
+  line-height: 0.94;
+
+  letter-spacing: -0.065em;
+
+  font-weight: 650;
+
+  color: #25231f;
+}
+
+.evoke-panel-heading h1 span,
+.evoke-panel-heading h2 span {
+  color: rgba(37, 35, 31, 0.34);
+}
+
+.evoke-panel-number {
+  width: 35px;
+  height: 35px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.15);
+
+  color:
+    rgba(37, 35, 31, 0.42);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  background:
+    rgba(255, 255, 255, 0.32);
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+
+.evoke-section {
+  padding-top: 22px;
+
+  border-top:
+    1px solid rgba(37, 35, 31, 0.11);
+}
+
+.evoke-section + .evoke-section {
+  margin-top: 25px;
+}
+
+.evoke-section-label {
+  display: inline-block;
+
+  margin-bottom: 12px;
+
+  color:
+    rgba(37, 35, 31, 0.57);
+
+  font-size: 10px;
+
+  font-weight: 750;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+.evoke-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.evoke-section-header > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.evoke-required {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(37, 35, 31, 0.35);
+}
+
+.evoke-success {
+  color: #536451;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+/* ============================================================
+   CANDIDATE FORM
+   ============================================================ */
+
+.evoke-candidate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.evoke-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.evoke-field label,
+.evoke-custom-role label,
+.evoke-custom-skill label {
+  color: rgba(37, 35, 31, 0.48);
+
+  font-size: 9px;
+  font-weight: 750;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.evoke-input-wrap {
+  position: relative;
+}
+
+.evoke-input-mark {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  color: rgba(37, 35, 31, 0.28);
+
+  pointer-events: none;
+}
+
+.evoke-field input,
+.evoke-field select,
+.evoke-select-wrap select,
+.evoke-custom-role input,
+.evoke-custom-skill input {
+  width: 100%;
+
+  min-height: 45px;
+
+  padding:
+    0
+    13px;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.13);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.44);
+
+  color: #292722;
+
+  outline: none;
+
+  font-size: 11px;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.evoke-input-wrap input {
+  padding-left: 39px;
+}
+
+.evoke-field input::placeholder,
+.evoke-custom-role input::placeholder,
+.evoke-custom-skill input::placeholder {
+  color: rgba(37, 35, 31, 0.31);
+}
+
+.evoke-field input:focus,
+.evoke-field select:focus,
+.evoke-select-wrap select:focus,
+.evoke-custom-role input:focus,
+.evoke-custom-skill input:focus {
+  border-color:
+    rgba(37, 35, 31, 0.42);
+
+  background:
+    rgba(255, 255, 255, 0.72);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 35, 31, 0.055);
+}
+
+.evoke-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.evoke-field select,
+.evoke-select-wrap select {
+  appearance: none;
+
+  cursor: pointer;
+
+  padding-right: 35px;
+}
+
+/* ============================================================
+   RESUME FOLDER
+   ============================================================ */
+
+.evoke-folder {
+  position: relative;
+
+  margin-top: 4px;
+
+  transform: rotate(-0.7deg);
+
+  transition:
+    transform 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.evoke-folder:hover {
+  transform:
+    rotate(0deg)
+    translateY(-3px);
+}
+
+.evoke-folder-tab {
+  display: inline-block;
+
+  padding:
+    7px
+    17px;
+
+  background: #39352f;
+
+  color: #f4efe5;
+
+  border-radius:
+    9px
+    9px
+    0
+    0;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.evoke-folder-body {
+  min-height: 180px;
+
+  padding: 16px;
+
+  border-radius:
+    0
+    17px
+    17px
+    17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ded5c6,
+      #cfc4b3
+    );
+
+  box-shadow:
+    0 18px 32px rgba(65, 57, 47, 0.14);
+
+  border:
+    1px solid rgba(67, 59, 49, 0.12);
+}
+
+/* ============================================================
+   RESUME UPLOAD
+   ============================================================ */
+
+.evoke-resume-upload {
+  width: 100%;
+}
+
+.evoke-upload-empty {
+  min-height: 145px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  border:
+    1px dashed rgba(37, 35, 31, 0.28);
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 252, 245, 0.38);
+
+  cursor: pointer;
+
+  text-align: center;
+
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease;
+}
+
+.evoke-upload-empty:hover {
+  background:
+    rgba(255, 252, 245, 0.66);
+
+  border-color:
+    rgba(37, 35, 31, 0.48);
+
+  transform: translateY(-2px);
+}
+
+.evoke-upload-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 10px;
+
+  border-radius: 12px;
+
+  background: #3b3730;
+  color: #f4efe6;
+
+  box-shadow:
+    0 8px 20px rgba(49, 44, 38, 0.16);
+}
+
+.evoke-upload-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.evoke-upload-copy strong {
+  color: #332f29;
+  font-size: 12px;
+}
+
+.evoke-upload-copy span {
+  color: rgba(37, 35, 31, 0.45);
+  font-size: 10px;
+}
+
+.evoke-upload-meta {
+  display: flex;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.evoke-upload-meta span {
+  padding:
+    4px
+    6px;
+
+  border-radius: 5px;
+
+  background:
+    rgba(37, 35, 31, 0.08);
+
+  color:
+    rgba(37, 35, 31, 0.43);
+
+  font-size: 6px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.evoke-resume-file {
+  position: relative;
+
+  min-height: 110px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 17px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 252, 245, 0.58);
+
+  border:
+    1px solid rgba(37, 35, 31, 0.13);
+}
+
+.evoke-file-paper {
+  position: relative;
+
+  width: 46px;
+  height: 56px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  padding: 7px;
+
+  background: #f8f4eb;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.15);
+
+  border-radius: 5px;
+
+  box-shadow:
+    4px 5px 0 rgba(37, 35, 31, 0.08);
+}
+
+.evoke-file-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 14px;
+  height: 14px;
+
+  background: #d4cab9;
+
+  clip-path:
+    polygon(
+      0 0,
+      100% 100%,
+      0 100%
+    );
+}
+
+.evoke-file-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.evoke-file-lines span {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(37, 35, 31, 0.17);
+}
+
+.evoke-file-lines span:nth-child(2) {
+  width: 80%;
+}
+
+.evoke-file-lines span:nth-child(3) {
+  width: 62%;
+}
+
+.evoke-file-type {
+  margin-top: 5px;
+
+  color: #504a41;
+
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.evoke-file-details {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.evoke-file-details strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #302d28;
+  font-size: 11px;
+}
+
+.evoke-file-details span {
+  color: #64705f;
+  font-size: 9px;
+}
+
+.evoke-remove-file {
+  margin-left: auto;
+
+  flex-shrink: 0;
+
+  border: none;
+  background: transparent;
+
+  color: rgba(37, 35, 31, 0.4);
+
+  font-size: 9px;
+
+  cursor: pointer;
+
+  transition:
+    color 180ms ease;
+}
+
+.evoke-remove-file:hover {
+  color: #9c4d44;
+}
+
+.evoke-extraction-loader {
+  position: absolute;
+
+  bottom: 0;
+  left: 15px;
+  right: 15px;
+
+  height: 2px;
+
+  overflow: hidden;
+
+  background:
+    rgba(37, 35, 31, 0.08);
+}
+
+.evoke-extraction-loader span {
+  display: block;
+
+  width: 45%;
+  height: 100%;
+
+  background: #39352f;
+
+  animation:
+    evokeLoading 1.2s ease-in-out infinite;
+}
+
+@keyframes evokeLoading {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.evoke-upload-error {
+  margin: 8px 0 0;
+
+  color: #a04e45;
+  font-size: 9px;
+}
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.evoke-error {
+  margin-top: 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 14px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(164, 73, 65, 0.07);
+
+  border:
+    1px solid rgba(164, 73, 65, 0.14);
+
+  color: #965149;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+.evoke-error-icon {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(164, 73, 65, 0.11);
+
+  font-weight: 800;
+}
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+
+.evoke-config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.evoke-config-block {
+  padding-top: 21px;
+
+  border-top:
+    1px solid rgba(37, 35, 31, 0.11);
+}
+
+.evoke-block-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.evoke-block-heading > span:first-child {
+  color: #302d28;
+
+  font-size: 11px;
+  font-weight: 750;
+
+  letter-spacing: 0.02em;
+}
+
+.evoke-block-hint {
+  color:
+    rgba(37, 35, 31, 0.34);
+
+  font-size: 8px;
+}
+
+/* ============================================================
+   ROLE
+   ============================================================ */
+
+.evoke-select-wrap {
+  position: relative;
+}
+
+.evoke-select-wrap select {
+  min-height: 50px;
+
+  padding-left: 58px;
+}
+
+.evoke-select-prefix {
+  position: absolute;
+
+  left: 14px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  z-index: 2;
+
+  color:
+    rgba(37, 35, 31, 0.3);
+
+  font-size: 7px;
+  font-weight: 900;
+
+  letter-spacing: 0.12em;
+
+  pointer-events: none;
+}
+
+.evoke-select-arrow {
+  position: absolute;
+
+  right: 15px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  color:
+    rgba(37, 35, 31, 0.42);
+
+  pointer-events: none;
+
+  font-size: 13px;
+}
+
+.evoke-custom-role {
+  margin-top: 10px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ============================================================
+   DIFFICULTY
+   ============================================================ */
+
+.evoke-difficulty-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 8px;
+}
+
+.evoke-difficulty-card {
+  position: relative;
+
+  min-height: 110px;
+
+  padding: 12px;
+
+  text-align: left;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.11);
+
+  border-radius: 14px;
+
+  background:
+    rgba(255, 255, 255, 0.35);
+
+  cursor: pointer;
+
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.evoke-difficulty-card:hover {
+  transform:
+    translateY(-3px);
+
+  border-color:
+    rgba(37, 35, 31, 0.28);
+
+  background:
+    rgba(255, 255, 255, 0.63);
+
+  box-shadow:
+    0 12px 25px rgba(66, 58, 47, 0.08);
+}
+
+.evoke-difficulty-selected {
+  background:
+    #35312b;
+
+  border-color:
+    #35312b;
+
+  box-shadow:
+    0 14px 28px rgba(44, 39, 34, 0.16);
+}
+
+.evoke-difficulty-number {
+  color:
+    rgba(37, 35, 31, 0.28);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.evoke-difficulty-selected
+  .evoke-difficulty-number {
+  color:
+    rgba(248, 245, 237, 0.35);
+}
+
+.evoke-difficulty-content {
+  margin-top: 18px;
+}
+
+.evoke-difficulty-content strong {
+  color: #312e29;
+  font-size: 11px;
+}
+
+.evoke-difficulty-selected
+  .evoke-difficulty-content strong {
+  color: #f5f0e7;
+}
+
+.evoke-difficulty-content p {
+  margin: 5px 0 0;
+
+  color:
+    rgba(37, 35, 31, 0.38);
+
+  font-size: 8px;
+
+  line-height: 1.45;
+}
+
+.evoke-difficulty-selected
+  .evoke-difficulty-content p {
+  color:
+    rgba(248, 245, 237, 0.42);
+}
+
+.evoke-difficulty-dot {
+  position: absolute;
+
+  right: 11px;
+  top: 12px;
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #a49a8b;
+}
+
+.evoke-difficulty-selected
+  .evoke-difficulty-dot {
+  background: #e9e2d7;
+}
+
+/* ============================================================
+   FOCUS
+   ============================================================ */
+
+.evoke-focus-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.evoke-skill-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evoke-category-title {
+  display: flex;
+  justify-content: space-between;
+
+  color:
+    rgba(37, 35, 31, 0.39);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.evoke-category-title span:last-child {
+  opacity: 0.55;
+}
+
+.evoke-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.evoke-skill-pill {
+  padding:
+    7px
+    10px;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.11);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.32);
+
+  color:
+    rgba(37, 35, 31, 0.52);
+
+  font-size: 8px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 170ms ease,
+    background 170ms ease,
+    border-color 170ms ease,
+    color 170ms ease;
+}
+
+.evoke-skill-pill:hover {
+  transform:
+    translateY(-1px);
+
+  background:
+    rgba(255, 255, 255, 0.7);
+
+  border-color:
+    rgba(37, 35, 31, 0.25);
+
+  color:
+    #302d28;
+}
+
+.evoke-skill-selected {
+  background:
+    #3b3730;
+
+  border-color:
+    #3b3730;
+
+  color:
+    #f4efe6;
+}
+
+.evoke-skill-selected:hover {
+  background:
+    #292621;
+
+  color:
+    #f4efe6;
+}
+
+.evoke-skill-check {
+  margin-right: 3px;
+}
+
+.evoke-custom-skill {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  margin-top: 16px;
+}
+
+.evoke-custom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  margin-top: 9px;
+}
+
+.evoke-custom-chips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding:
+    6px
+    9px;
+
+  border-radius: 999px;
+
+  background:
+    #d8d0c3;
+
+  color:
+    #3c3831;
+
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.evoke-custom-chips button {
+  border: none;
+  background: transparent;
+
+  color:
+    rgba(37, 35, 31, 0.5);
+
+  cursor: pointer;
+
+  font-size: 13px;
+  line-height: 1;
+
+  padding: 0;
+}
+
+.evoke-selected-count {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-top: 13px;
+
+  color:
+    rgba(37, 35, 31, 0.31);
+
+  font-size: 8px;
+
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.evoke-count-line {
+  height: 1px;
+  flex: 1;
+  background:
+    rgba(37, 35, 31, 0.1);
+}
+
+/* ============================================================
+   INTERVIEW TYPES
+   ============================================================ */
+
+.evoke-type-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 9px;
+}
+
+.evoke-type-card {
+  position: relative;
+
+  min-height: 106px;
+
+  padding: 15px;
+
+  text-align: left;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.11);
+
+  border-radius: 15px;
+
+  background:
+    rgba(255, 255, 255, 0.31);
+
+  color: #302d28;
+
+  cursor: pointer;
+
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.evoke-type-card:hover {
+  transform:
+    translateY(-3px)
+    rotate(0deg);
+
+  border-color:
+    rgba(37, 35, 31, 0.27);
+
+  background:
+    rgba(255, 255, 255, 0.68);
+
+  box-shadow:
+    0 14px 28px rgba(66, 58, 47, 0.09);
+}
+
+.evoke-type-selected {
+  background:
+    #3a3630;
+
+  border-color:
+    #3a3630;
+
+  color:
+    #f6f1e8;
+
+  box-shadow:
+    0 15px 30px rgba(47, 42, 36, 0.15);
+}
+
+.evoke-note-tilt-left {
+  transform:
+    rotate(-0.45deg);
+}
+
+.evoke-note-tilt-right {
+  transform:
+    rotate(0.45deg);
+}
+
+.evoke-type-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.evoke-type-label {
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.evoke-type-card p {
+  margin:
+    10px
+    0
+    0;
+
+  color:
+    rgba(37, 35, 31, 0.4);
+
+  font-size: 8px;
+
+  line-height: 1.55;
+}
+
+.evoke-type-selected p {
+  color:
+    rgba(246, 241, 232, 0.45);
+}
+
+.evoke-recommended {
+  flex-shrink: 0;
+
+  padding:
+    4px
+    6px;
+
+  border-radius: 5px;
+
+  background:
+    rgba(37, 35, 31, 0.07);
+
+  color:
+    rgba(37, 35, 31, 0.45);
+
+  font-size: 6px;
+  font-weight: 900;
+
+  letter-spacing: 0.06em;
+}
+
+.evoke-type-selected
+  .evoke-recommended {
+  background:
+    rgba(255, 255, 255, 0.1);
+
+  color:
+    rgba(246, 241, 232, 0.55);
+}
+
+/* ============================================================
+   CUSTOM PROMPT
+   ============================================================ */
+
+.evoke-custom-prompt {
+  margin-top: 11px;
+}
+
+.evoke-custom-prompt label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color:
+    rgba(37, 35, 31, 0.42);
+
+  font-size: 9px;
+}
+
+.evoke-custom-prompt textarea {
+  width: 100%;
+
+  padding: 13px;
+
+  resize: vertical;
+
+  border-radius: 12px;
+
+  border:
+    1px solid rgba(37, 35, 31, 0.13);
+
+  background:
+    rgba(255, 255, 255, 0.48);
+
+  color:
+    #302d28;
+
+  font-size: 10px;
+
+  outline: none;
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.evoke-custom-prompt textarea::placeholder {
+  color:
+    rgba(37, 35, 31, 0.28);
+}
+
+.evoke-custom-prompt textarea:focus {
+  border-color:
+    rgba(37, 35, 31, 0.4);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 35, 31, 0.05);
+}
+
+/* ============================================================
+   ACTION
+   ============================================================ */
+
+.evoke-action-area {
+  margin-top: 2px;
+
+  padding-top: 19px;
+
+  border-top:
+    1px solid rgba(37, 35, 31, 0.12);
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1.25fr;
+
+  gap: 10px;
+}
+
+.evoke-duration {
+  min-height: 58px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    0
+    14px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.3);
+
+  border:
+    1px solid rgba(37, 35, 31, 0.1);
+}
+
+.evoke-duration-icon {
+  color:
+    rgba(37, 35, 31, 0.55);
+
+  font-size: 18px;
+}
+
+.evoke-duration div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.evoke-duration div span {
+  color:
+    rgba(37, 35, 31, 0.36);
+
+  font-size: 7px;
+
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.evoke-duration strong {
+  color:
+    #302d28;
+
+  font-size: 10px;
+}
+
+.evoke-start-button {
+  min-height: 58px;
+
+  border: none;
+
+  border-radius: 13px;
+
+  background:
+    #292621;
+
+  color:
+    #f6f1e8;
+
+  font-size: 11px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  box-shadow:
+    0 10px 25px rgba(47, 42, 36, 0.16);
+
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.evoke-start-button:hover {
+  transform:
+    translateY(-3px);
+
+  background:
+    #15130f;
+
+  box-shadow:
+    0 18px 38px rgba(47, 42, 36, 0.23);
+}
+
+.evoke-start-button:active {
+  transform:
+    translateY(0);
+}
+
+.evoke-arrow {
+  font-size: 17px;
+
+  transition:
+    transform 200ms ease;
+}
+
+.evoke-start-button:hover
+  .evoke-arrow {
+  transform:
+    translateX(5px);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1120px) {
+  .evoke-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .evoke-profile-panel,
+  .evoke-config-panel {
+    padding: 26px;
+  }
+
+  .evoke-difficulty-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .evoke-setup-page {
+    padding:
+      0
+      15px
+      35px;
+  }
+
+  .evoke-setup-header {
+    height: 72px;
+  }
+
+  .evoke-step-label {
+    display: none;
+  }
+
+  .evoke-intro {
+    margin-top: 22px;
+  }
+
+  .evoke-intro p {
+    font-size: 13px;
+  }
+
+  .evoke-workspace {
+    margin-top: 18px;
+    gap: 15px;
+  }
+
+  .evoke-profile-panel,
+  .evoke-config-panel {
+    padding: 20px;
+    border-radius: 21px;
+  }
+
+  .evoke-panel-heading h1,
+  .evoke-panel-heading h2 {
+    font-size: 34px;
+  }
+
+  .evoke-input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evoke-difficulty-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .evoke-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evoke-action-area {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .evoke-brand-word {
+    font-size: 15px;
+  }
+
+  .evoke-brand-symbol {
+    width: 24px;
+    height: 24px;
+  }
+
+  .evoke-brand-symbol span {
+    width: 4px;
+    height: 19px;
+  }
+
+  .evoke-panel-heading h1,
+  .evoke-panel-heading h2 {
+    font-size: 31px;
+  }
+
+  .evoke-difficulty-card {
+    min-height: 100px;
+  }
+
+  .evoke-upload-meta {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-evoke-fade,
+  .animate-evoke-fade-up,
+  .animate-evoke-title,
+  .animate-evoke-drift,
+  .animate-evoke-drift-slow,
+  .evoke-wave-one,
+  .evoke-wave-two,
+  .evoke-wave-three,
+  .evoke-setup-glow {
+    animation: none;
+  }
+
+  .evoke-type-card,
+  .evoke-folder,
+  .evoke-start-button,
+  .evoke-skill-pill,
+  .evoke-difficulty-card {
+    transition: none;
+  }
+}

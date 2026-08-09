@@ -1275,127 +1275,101 @@ export const InterviewProvider = ({
   // ==========================================================
 
   const generateNextQuestion = async (
-    previousQuestion,
-    previousAnswerOverride = ""
-  ) => {
-    const mainQuestions =
-      questions.filter(
-        (question) =>
-          !question?.isFollowUp
-      );
+  previousQuestion,
+  previousAnswerOverride = ""
+) => {
+  const mainQuestions = questions.filter(
+    (question) => !question?.isFollowUp
+  );
 
-    // --------------------------------------------------------
-    // ALL SIX MAIN QUESTIONS COMPLETED
-    // --------------------------------------------------------
+  // We already completed all main questions
+  if (mainQuestions.length >= MAIN_QUESTION_LIMIT) {
+    finishInterview();
+    return;
+  }
 
-    if (
-      mainQuestions.length >=
-      MAIN_QUESTION_LIMIT
-    ) {
-      finishInterview();
-      return;
-    }
+  setIsThinking(true);
+  setInterviewError("");
 
-    setIsThinking(true);
+  try {
+    const response = await apiRequest(
+      "/api/interview/start",
+      {
+        candidateName,
 
-    setInterviewError("");
+        role: effectiveRole,
 
-    try {
-      const response =
-        await apiRequest(
-          "/api/interview/start",
-          {
-            candidateName,
+        customRole,
 
-            role:
-              effectiveRole,
+        difficulty,
 
-            customRole,
+        selectedTopics: allSelectedSkills,
 
-            difficulty,
+        customSkills,
 
-            selectedTopics:
-              allSelectedSkills,
+        interviewType,
 
-            customSkills,
+        customInterviewPrompt,
 
-            interviewType,
+        resumeText,
 
-            customInterviewPrompt,
+        previousQuestion:
+          previousQuestion?.question || "",
 
-            resumeText,
+        previousTopic:
+          previousQuestion?.topic || "",
 
-            previousQuestion:
-              previousQuestion?.question ||
-              "",
+        previousAnswer:
+          previousAnswerOverride ||
+          answers?.[previousQuestion?.id] ||
+          followUpAnswers?.[previousQuestion?.id] ||
+          "",
 
-            previousTopic:
-              previousQuestion?.topic ||
-              "",
-
-            previousAnswer:
-              previousAnswerOverride ||
-              answers[
-                previousQuestion?.id
-              ] ||
-              followUpAnswers[
-                previousQuestion?.id
-              ] ||
-              "",
-
-            // Main question number.
-            questionNumber:
-              mainQuestions.length + 1,
-          }
-        );
-
-      // IMPORTANT:
-      // Explicitly mark generated question as MAIN.
-      const nextQuestion =
-        normalizeQuestion(
-          response?.question,
-          questions.length,
-          false
-        );
-
-      if (
-        !nextQuestion.question
-      ) {
-        throw new Error(
-          "The AI did not return the next question."
-        );
+        // IMPORTANT:
+        // This is the next MAIN question number.
+        questionNumber:
+          mainQuestions.length + 1,
       }
+    );
 
-      const nextIndex =
-        questions.length;
+    const nextQuestion = normalizeQuestion(
+      response?.question,
+      mainQuestions.length,
+      false
+    );
 
-      setQuestions(
-        (previous) => [
-          ...previous,
-          nextQuestion,
-        ]
+    if (!nextQuestion?.question?.trim()) {
+      throw new Error(
+        "The AI did not return the next interview question."
       );
-
-      setCurrentQuestionIndex(
-        nextIndex
-      );
-
-      setIsFollowUpPhase(false);
-    } catch (error) {
-      console.error(
-        "❌ Failed to generate next question:",
-        error
-      );
-
-      setInterviewError(
-        error?.message ||
-          "Unable to generate the next question."
-      );
-    } finally {
-      setIsThinking(false);
     }
-  };
 
+    // Add ONLY the new main question.
+    setQuestions((previous) => [
+      ...previous,
+      nextQuestion,
+    ]);
+
+    // The new question is always the last item.
+    setCurrentQuestionIndex(
+      questions.length
+    );
+
+    setIsFollowUpPhase(false);
+  } catch (error) {
+    console.error(
+      "❌ Failed to generate next question:",
+      error
+    );
+
+    setInterviewError(
+      error?.message ||
+        "Unable to generate the next question."
+    );
+  } finally {
+    setIsThinking(false);
+  }
+};
   // ==========================================================
   // SUBMIT FOLLOW-UP
   // ==========================================================

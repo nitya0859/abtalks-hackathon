@@ -1,1 +1,1334 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "Geist Variable", sans-serif;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ============================================================
+   EVOKE DESIGN TOKENS
+   ============================================================ */
+
+:root {
+  --background: #f3eee4;
+  --foreground: #24221f;
+
+  --card: #ffffff;
+  --card-foreground: #24221f;
+
+  --popover: #ffffff;
+  --popover-foreground: #24221f;
+
+  --primary: #24221f;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eee9df;
+  --secondary-foreground: #24221f;
+
+  --muted: #eee9df;
+  --muted-foreground: #77736d;
+
+  --accent: #e8e1d5;
+  --accent-foreground: #24221f;
+
+  --destructive: #c94a4a;
+
+  --border: #e2ddd4;
+  --input: #e2ddd4;
+  --ring: #b8b0a4;
+
+  --chart-1: #24221f;
+  --chart-2: #77736d;
+  --chart-3: #aaa398;
+  --chart-4: #d1c9bc;
+  --chart-5: #e8e1d5;
+
+  --radius: 0.75rem;
+
+  --sidebar: #f7f4ee;
+  --sidebar-foreground: #24221f;
+  --sidebar-primary: #24221f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eee9df;
+  --sidebar-accent-foreground: #24221f;
+  --sidebar-border: #e2ddd4;
+  --sidebar-ring: #b8b0a4;
+}
+
+.dark {
+  --background: #181715;
+  --foreground: #f5f2eb;
+
+  --card: #211f1c;
+  --card-foreground: #f5f2eb;
+
+  --popover: #211f1c;
+  --popover-foreground: #f5f2eb;
+
+  --primary: #f5f2eb;
+  --primary-foreground: #181715;
+
+  --secondary: #2b2925;
+  --secondary-foreground: #f5f2eb;
+
+  --muted: #2b2925;
+  --muted-foreground: #aaa59c;
+
+  --accent: #302d28;
+  --accent-foreground: #f5f2eb;
+
+  --destructive: #e06a6a;
+
+  --border: #3a3731;
+  --input: #3a3731;
+  --ring: #777169;
+
+  --sidebar: #211f1c;
+  --sidebar-foreground: #f5f2eb;
+  --sidebar-primary: #f5f2eb;
+  --sidebar-primary-foreground: #181715;
+  --sidebar-accent: #2b2925;
+  --sidebar-accent-foreground: #f5f2eb;
+  --sidebar-border: #3a3731;
+  --sidebar-ring: #777169;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    min-width: 320px;
+  }
+
+  button,
+  a {
+    font-family: inherit;
+  }
+}
+
+/* ============================================================
+   EVOKE LANDING PAGE ANIMATIONS
+   ============================================================ */
+
+@keyframes evokeFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes evokeFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes evokeTitle {
+  from {
+    opacity: 0;
+    transform: translateY(35px) scale(0.96);
+    letter-spacing: -0.02em;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    letter-spacing: -0.075em;
+  }
+}
+
+@keyframes evokeDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(30px, 20px, 0) scale(1.05);
+  }
+}
+
+@keyframes evokeDriftSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(-35px, 25px, 0);
+  }
+}
+
+@keyframes evokeWaveOne {
+  0%,
+  100% {
+    transform: translateX(-3%) rotate(-7deg);
+  }
+
+  50% {
+    transform: translateX(3%) rotate(-4deg);
+  }
+}
+
+@keyframes evokeWaveTwo {
+  0%,
+  100% {
+    transform: translateX(2%) rotate(8deg);
+  }
+
+  50% {
+    transform: translateX(-3%) rotate(5deg);
+  }
+}
+
+@keyframes evokeWaveThree {
+  0%,
+  100% {
+    transform: translateX(-2%) rotate(-3deg);
+  }
+
+  50% {
+    transform: translateX(4%) rotate(-6deg);
+  }
+}
+
+.animate-evoke-fade {
+  animation: evokeFade 1s ease-out both;
+}
+
+.animate-evoke-fade-up {
+  animation: evokeFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-evoke-title {
+  animation: evokeTitle 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-evoke-drift {
+  animation: evokeDrift 12s ease-in-out infinite;
+}
+
+.animate-evoke-drift-slow {
+  animation: evokeDriftSlow 16s ease-in-out infinite;
+}
+
+/* ============================================================
+   SOFT FLOWING BACKGROUND
+   ============================================================ */
+
+.evoke-wave {
+  position: absolute;
+  width: 75vw;
+  height: 22vw;
+  min-height: 160px;
+  max-height: 330px;
+
+  border-radius: 50%;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+
+  filter: blur(1px);
+
+  box-shadow:
+    0 -25px 50px rgba(255, 255, 255, 0.35),
+    0 25px 60px rgba(214, 202, 183, 0.12);
+}
+
+.evoke-wave-one {
+  top: 14%;
+  left: -10%;
+  animation: evokeWaveOne 14s ease-in-out infinite;
+}
+
+.evoke-wave-two {
+  top: 38%;
+  right: -15%;
+  animation: evokeWaveTwo 18s ease-in-out infinite;
+}
+
+.evoke-wave-three {
+  bottom: 5%;
+  left: 5%;
+  animation: evokeWaveThree 20s ease-in-out infinite;
+}
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-evoke-fade,
+  .animate-evoke-fade-up,
+  .animate-evoke-title,
+  .animate-evoke-drift,
+  .animate-evoke-drift-slow,
+  .evoke-wave-one,
+  .evoke-wave-two,
+  .evoke-wave-three {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   EVOKE SETUP WORKSPACE
+============================================================ */
+
+.evoke-setup-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(185, 156, 255, 0.10),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 75%,
+      rgba(233, 185, 166, 0.08),
+      transparent 28%
+    ),
+    #17151b;
+
+  color: #f7f3ea;
+
+  padding:
+    0
+    clamp(20px, 4vw, 64px)
+    50px;
+}
+
+
+/* ============================================================
+   GRID
+============================================================ */
+
+.evoke-setup-grid {
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.45;
+
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0.035) 1px,
+      transparent 1px
+    );
+
+  background-size: 36px 36px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black,
+      transparent 95%
+    );
+}
+
+
+/* ============================================================
+   GLOWS
+============================================================ */
+
+.evoke-setup-glow {
+  position: fixed;
+
+  width: 420px;
+  height: 420px;
+
+  border-radius: 50%;
+
+  filter: blur(120px);
+
+  pointer-events: none;
+
+  opacity: 0.12;
+
+  animation: evokeSetupFloat 14s ease-in-out infinite;
+}
+
+.evoke-glow-one {
+  top: -180px;
+  left: 10%;
+
+  background: #a982ff;
+}
+
+.evoke-glow-two {
+  bottom: -200px;
+  right: 5%;
+
+  background: #e5a98f;
+
+  animation-delay: -6s;
+}
+
+
+@keyframes evokeSetupFloat {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(30px, -20px, 0);
+  }
+
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.evoke-setup-header {
+  position: relative;
+  z-index: 10;
+
+  height: 88px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.08);
+}
+
+
+.evoke-setup-header .logo,
+.evoke-setup-header > * {
+  flex-shrink: 0;
+}
+
+
+.evoke-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: rgba(247,243,234,0.35);
+
+  font-size: 11px;
+
+  letter-spacing: 0.15em;
+
+  text-transform: uppercase;
+}
+
+
+.evoke-step-active {
+  color: #f7f3ea;
+
+  font-weight: 700;
+}
+
+
+.evoke-step-label {
+  margin-left: 10px;
+
+  color: rgba(247,243,234,0.45);
+}
+
+
+/* ============================================================
+   WORKSPACE
+============================================================ */
+
+.evoke-workspace {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1500px;
+
+  margin:
+    38px
+    auto
+    0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(320px, 0.85fr)
+    minmax(520px, 1.45fr);
+
+  gap: 24px;
+
+  align-items: start;
+}
+
+
+/* ============================================================
+   PANELS
+============================================================ */
+
+.evoke-panel {
+  position: relative;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(39,36,46,0.94),
+      rgba(27,25,32,0.94)
+    );
+
+  border:
+    1px solid rgba(255,255,255,0.085);
+
+  border-radius: 28px;
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.035);
+
+  backdrop-filter: blur(24px);
+
+  overflow: hidden;
+}
+
+
+.evoke-profile-panel {
+  padding: 30px;
+}
+
+
+.evoke-config-panel {
+  padding: 30px;
+}
+
+
+/* ============================================================
+   PANEL HEADING
+============================================================ */
+
+.evoke-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 30px;
+}
+
+
+.evoke-overline {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color:
+    rgba(185,156,255,0.85);
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+}
+
+
+.evoke-panel-heading h1,
+.evoke-panel-heading h2 {
+  margin: 0;
+
+  font-size:
+    clamp(30px, 3vw, 48px);
+
+  line-height: 0.95;
+
+  letter-spacing: -0.055em;
+
+  font-weight: 650;
+
+  color: #f7f3ea;
+}
+
+
+.evoke-panel-heading h1 span,
+.evoke-panel-heading h2 span {
+  color: rgba(247,243,234,0.42);
+}
+
+
+.evoke-panel-number {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+
+  border:
+    1px solid rgba(255,255,255,0.1);
+
+  color:
+    rgba(247,243,234,0.45);
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   SECTIONS
+============================================================ */
+
+.evoke-section {
+  padding-top: 22px;
+
+  border-top:
+    1px solid rgba(255,255,255,0.065);
+}
+
+
+.evoke-section + .evoke-section {
+  margin-top: 24px;
+}
+
+
+.evoke-section-label {
+  display: inline-block;
+
+  margin-bottom: 12px;
+
+  color:
+    rgba(247,243,234,0.68);
+
+  font-size: 11px;
+
+  font-weight: 650;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+}
+
+
+.evoke-section-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+
+.evoke-section-header > div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.evoke-required {
+  font-size: 8px;
+
+  letter-spacing: 0.12em;
+
+  color:
+    rgba(233,185,166,0.7);
+}
+
+
+.evoke-success {
+  color: #9ee6bf;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   RESUME FOLDER
+============================================================ */
+
+.evoke-folder {
+  position: relative;
+
+  margin-top: 4px;
+
+  transform: rotate(-1deg);
+
+  transition:
+    transform 300ms ease,
+    filter 300ms ease;
+}
+
+
+.evoke-folder:hover {
+  transform:
+    rotate(0deg)
+    translateY(-3px);
+}
+
+
+.evoke-folder-tab {
+  display: inline-block;
+
+  padding:
+    7px
+    18px;
+
+  background:
+    #c9b4ff;
+
+  color: #221c2c;
+
+  border-radius:
+    10px
+    10px
+    0
+    0;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+
+.evoke-folder-body {
+  min-height: 175px;
+
+  padding: 18px;
+
+  border-radius:
+    0
+    18px
+    18px
+    18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #d6c5ff,
+      #bca8ef
+    );
+
+  box-shadow:
+    0 18px 35px rgba(0,0,0,0.22);
+}
+
+
+/*
+  ResumeUpload currently owns its own visual styling.
+  This wrapper makes it feel like a folder while we
+  redesign ResumeUpload itself.
+*/
+
+.evoke-folder-body > * {
+  height: 100%;
+}
+
+
+/* ============================================================
+   ERROR
+============================================================ */
+
+.evoke-error {
+  margin-top: 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 12px 14px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(239,68,68,0.08);
+
+  border:
+    1px solid rgba(239,68,68,0.15);
+
+  color:
+    #f4a5a5;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+
+.evoke-error-icon {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(239,68,68,0.15);
+
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   CONFIG FORM
+============================================================ */
+
+.evoke-config-form {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 25px;
+}
+
+
+.evoke-config-block {
+  padding-top: 22px;
+
+  border-top:
+    1px solid rgba(255,255,255,0.065);
+}
+
+
+.evoke-block-heading {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 13px;
+}
+
+
+.evoke-block-heading > span:first-child {
+  color: #f1ede6;
+
+  font-size: 12px;
+
+  font-weight: 650;
+
+  letter-spacing: 0.02em;
+}
+
+
+.evoke-block-hint {
+  color:
+    rgba(247,243,234,0.32);
+
+  font-size: 9px;
+}
+
+
+/* ============================================================
+   INTERVIEW TYPES
+============================================================ */
+
+.evoke-type-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+
+.evoke-type-card {
+  position: relative;
+
+  min-height: 108px;
+
+  padding: 16px;
+
+  text-align: left;
+
+  border:
+    1px solid rgba(255,255,255,0.075);
+
+  border-radius: 17px;
+
+  background:
+    rgba(255,255,255,0.025);
+
+  color: #f7f3ea;
+
+  cursor: pointer;
+
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+
+.evoke-type-card:hover {
+  transform:
+    translateY(-3px)
+    rotate(0deg);
+
+  border-color:
+    rgba(185,156,255,0.45);
+
+  background:
+    rgba(185,156,255,0.07);
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,0.18);
+}
+
+
+.evoke-type-selected {
+  background:
+    rgba(185,156,255,0.13);
+
+  border-color:
+    #b99cff;
+
+  box-shadow:
+    0 0 0 1px rgba(185,156,255,0.08),
+    0 15px 35px rgba(0,0,0,0.2);
+}
+
+
+.evoke-note-tilt-left {
+  transform: rotate(-0.6deg);
+}
+
+
+.evoke-note-tilt-right {
+  transform: rotate(0.6deg);
+}
+
+
+.evoke-type-top {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 8px;
+}
+
+
+.evoke-type-label {
+  font-size: 12px;
+
+  font-weight: 700;
+
+  line-height: 1.25;
+}
+
+
+.evoke-type-card p {
+  margin:
+    10px
+    0
+    0;
+
+  color:
+    rgba(247,243,234,0.4);
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+
+.evoke-recommended {
+  flex-shrink: 0;
+
+  padding:
+    4px
+    6px;
+
+  border-radius: 5px;
+
+  background:
+    rgba(233,185,166,0.12);
+
+  color:
+    #e9b9a6;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.06em;
+}
+
+
+/* ============================================================
+   CUSTOM PROMPT
+============================================================ */
+
+.evoke-custom-prompt {
+  margin-top: 12px;
+}
+
+
+.evoke-custom-prompt label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color:
+    rgba(247,243,234,0.5);
+
+  font-size: 10px;
+}
+
+
+.evoke-custom-prompt textarea {
+  width: 100%;
+
+  padding: 13px;
+
+  resize: vertical;
+
+  border-radius: 14px;
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  background:
+    rgba(0,0,0,0.18);
+
+  color: #f7f3ea;
+
+  font-size: 11px;
+
+  outline: none;
+
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+
+.evoke-custom-prompt textarea::placeholder {
+  color:
+    rgba(247,243,234,0.25);
+}
+
+
+.evoke-custom-prompt textarea:focus {
+  border-color:
+    rgba(185,156,255,0.6);
+
+  box-shadow:
+    0 0 0 3px rgba(185,156,255,0.08);
+}
+
+
+/* ============================================================
+   ACTION AREA
+============================================================ */
+
+.evoke-action-area {
+  margin-top: 4px;
+
+  padding-top: 20px;
+
+  border-top:
+    1px solid rgba(255,255,255,0.08);
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1.25fr;
+
+  gap: 12px;
+}
+
+
+.evoke-duration {
+  min-height: 58px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding:
+    0
+    15px;
+
+  border-radius: 15px;
+
+  background:
+    rgba(255,255,255,0.025);
+
+  border:
+    1px solid rgba(255,255,255,0.06);
+}
+
+
+.evoke-duration-dot {
+  color:
+    #b99cff;
+
+  font-size: 18px;
+}
+
+
+.evoke-duration div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.evoke-duration span {
+  color:
+    rgba(247,243,234,0.35);
+
+  font-size: 9px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
+
+.evoke-duration strong {
+  color:
+    #f7f3ea;
+
+  font-size: 11px;
+}
+
+
+.evoke-start-button {
+  min-height: 58px;
+
+  border: none;
+
+  border-radius: 15px;
+
+  background:
+    #f2eee6;
+
+  color:
+    #1a181d;
+
+  font-size: 12px;
+
+  font-weight: 750;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+
+.evoke-start-button:hover {
+  transform:
+    translateY(-2px);
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,0.25);
+}
+
+
+.evoke-start-button:active {
+  transform:
+    translateY(0);
+}
+
+
+.evoke-arrow {
+  font-size: 18px;
+
+  transition:
+    transform 200ms ease;
+}
+
+
+.evoke-start-button:hover .evoke-arrow {
+  transform:
+    translateX(4px);
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 1050px) {
+
+  .evoke-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .evoke-profile-panel,
+  .evoke-config-panel {
+    padding: 26px;
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .evoke-setup-page {
+    padding:
+      0
+      15px
+      30px;
+  }
+
+  .evoke-setup-header {
+    height: 72px;
+  }
+
+  .evoke-step-label {
+    display: none;
+  }
+
+  .evoke-workspace {
+    margin-top: 20px;
+
+    gap: 15px;
+  }
+
+  .evoke-profile-panel,
+  .evoke-config-panel {
+    padding: 20px;
+
+    border-radius: 22px;
+  }
+
+  .evoke-panel-heading h1,
+  .evoke-panel-heading h2 {
+    font-size: 34px;
+  }
+
+  .evoke-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evoke-action-area {
+    grid-template-columns: 1fr;
+  }
+
+}

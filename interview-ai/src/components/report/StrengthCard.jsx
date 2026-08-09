@@ -1,41 +1,76 @@
-const strengthsList = [
-  "Excellent reasoning on trade-offs between vector indices",
-  "Strong architecture design for distributed hybrid search",
-  "Clear, structured communication with code & Markdown examples",
-  "Good debugging approach for LLM token budget leaks",
-];
+const StrengthCard = ({ strengths = [] }) => {
+  const visibleStrengths = Array.isArray(strengths)
+    ? strengths.filter(Boolean)
+    : [];
 
-const StrengthCard = () => {
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 shadow-xl space-y-4">
-      <div className="flex items-center gap-2.5 pb-2 border-b border-slate-800/60">
-        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-base font-bold text-white tracking-tight">
-            Key Strengths
-          </h3>
-          <p className="text-xs text-slate-400">Verified core technical competencies</p>
-        </div>
+    <section className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl">
+      {/* Header */}
+
+      <div className="mb-5">
+        <h2 className="text-base sm:text-lg font-semibold text-white">
+          Key Strengths
+        </h2>
+
+        <p className="text-xs text-slate-500 mt-1">
+          Verified competencies from your interview responses
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {strengthsList.map((item, idx) => (
-          <div
-            key={idx}
-            className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-300 flex items-start gap-2.5 shadow-sm"
-          >
-            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">
-              ✓
-            </span>
-            <span className="leading-relaxed">{item}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+      {visibleStrengths.length === 0 ? (
+        <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/70">
+          <p className="text-xs text-slate-500">
+            No specific strengths were identified from the answered
+            questions.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {visibleStrengths.map((item, index) => (
+            <div
+              key={`${item}-${index}`}
+              className="
+                p-3.5
+                rounded-2xl
+                bg-emerald-500/10
+                border
+                border-emerald-500/20
+                text-xs
+                font-medium
+                text-emerald-300
+                flex
+                items-start
+                gap-2.5
+                shadow-sm
+              "
+            >
+              <span
+                className="
+                  w-4
+                  h-4
+                  rounded-full
+                  bg-emerald-500/20
+                  text-emerald-400
+                  flex
+                  items-center
+                  justify-center
+                  font-bold
+                  text-[10px]
+                  flex-shrink-0
+                  mt-0.5
+                "
+              >
+                ✓
+              </span>
+
+              <span className="leading-relaxed">
+                {item}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 };
 

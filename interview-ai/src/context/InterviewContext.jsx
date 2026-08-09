@@ -21,7 +21,22 @@ const API_BASE_URL =
   "http://localhost:5001";
 
 // ============================================================
-// DEFAULTS
+// INTERVIEW CONFIGURATION
+// ============================================================
+
+// Maximum number of MAIN questions.
+// Follow-ups do not count toward this limit.
+const MAIN_QUESTION_LIMIT = 6;
+
+// Minimum number of MAIN questions that must be answered
+// before the candidate can manually finish the interview.
+const MINIMUM_ANSWERED_QUESTIONS = 3;
+
+// Interview duration = 20 minutes
+const INTERVIEW_DURATION = 1200;
+
+// ============================================================
+// DEFAULT SCORES
 // ============================================================
 
 const DEFAULT_SCORES = {
@@ -32,15 +47,18 @@ const DEFAULT_SCORES = {
   confidence: 0,
 };
 
+// ============================================================
+// EMPTY QUESTION
+// ============================================================
+
 const EMPTY_QUESTION = {
   id: "loading-question",
   topic: "Interview",
   difficulty: "Medium",
   question: "",
   expectedConcepts: [],
+  isFollowUp: false,
 };
-
-const MAIN_QUESTION_LIMIT = 6;
 
 // ============================================================
 // API HELPER
@@ -93,12 +111,16 @@ const apiRequest = async (endpoint, body) => {
 
 const normalizeQuestion = (
   rawQuestion,
-  index = 0
+  index = 0,
+  isFollowUp = false
 ) => {
   if (!rawQuestion) {
     return {
       ...EMPTY_QUESTION,
+
       id: `question-${index + 1}`,
+
+      isFollowUp,
     };
   }
 
@@ -106,10 +128,18 @@ const normalizeQuestion = (
   if (typeof rawQuestion === "string") {
     return {
       id: `question-${index + 1}`,
-      topic: "Technical",
+
+      topic: isFollowUp
+        ? "Follow-up"
+        : "Technical",
+
       difficulty: "Medium",
+
       question: rawQuestion,
+
       expectedConcepts: [],
+
+      isFollowUp,
     };
   }
 
@@ -121,7 +151,9 @@ const normalizeQuestion = (
     topic:
       rawQuestion.topic ||
       rawQuestion.skill ||
-      "Technical",
+      (isFollowUp
+        ? "Follow-up"
+        : "Technical"),
 
     difficulty:
       rawQuestion.difficulty ||
@@ -139,6 +171,14 @@ const normalizeQuestion = (
       )
         ? rawQuestion.expectedConcepts
         : [],
+
+    isFollowUp:
+      Boolean(
+        rawQuestion.isFollowUp ||
+          isFollowUp ||
+          rawQuestion.topic ===
+            "Follow-up"
+      ),
   };
 };
 
@@ -207,6 +247,63 @@ const normalizeScores = (
     confidence: getScore(
       "confidence"
     ),
+  };
+};
+
+// ============================================================
+// EVALUATION NORMALIZER
+// ============================================================
+
+const normalizeEvaluation = (
+  evaluation,
+  question
+) => {
+  const scores =
+    normalizeScores(evaluation);
+
+  return {
+    questionId:
+      question?.id || "",
+
+    question:
+      question?.question || "",
+
+    topic:
+      question?.topic || "Technical",
+
+    difficulty:
+      question?.difficulty || "Medium",
+
+    isFollowUp:
+      Boolean(
+        question?.isFollowUp
+      ),
+
+    scores,
+
+    feedback:
+      evaluation?.feedback ||
+      evaluation?.overallFeedback ||
+      evaluation?.summary ||
+      evaluation?.comment ||
+      "",
+
+    strengths:
+      Array.isArray(
+        evaluation?.strengths
+      )
+        ? evaluation.strengths
+        : [],
+
+    improvements:
+      Array.isArray(
+        evaluation?.improvements
+      )
+        ? evaluation.improvements
+        : [],
+
+    evaluatedAt:
+      new Date().toISOString(),
   };
 };
 
@@ -359,20 +456,20 @@ export const InterviewProvider = ({
   ] = useState("");
 
   // ==========================================================
-  // GENERATED QUESTIONS
+  // QUESTIONS
   // ==========================================================
 
   const [questions, setQuestions] =
     useState([]);
 
-  // ==========================================================
-  // INTERVIEW STATE
-  // ==========================================================
-
   const [
     currentQuestionIndex,
     setCurrentQuestionIndex,
   ] = useState(0);
+
+  // ==========================================================
+  // ANSWERS
+  // ==========================================================
 
   const [answers, setAnswers] =
     useState({});
@@ -381,6 +478,10 @@ export const InterviewProvider = ({
     followUpAnswers,
     setFollowUpAnswers,
   ] = useState({});
+
+  // ==========================================================
+  // INTERVIEW STATE
+  // ==========================================================
 
   const [
     isFollowUpPhase,
@@ -399,8 +500,22 @@ export const InterviewProvider = ({
       ...DEFAULT_SCORES,
     });
 
+  /*
+   * IMPORTANT:
+   *
+   * scoreHistory stores evaluations for MAIN questions only.
+   *
+   * Follow-ups can still receive AI evaluation and feedback,
+   * but they are NOT stored as independent report evaluations.
+   */
+
   const [scoreHistory, setScoreHistory] =
     useState([]);
+
+  const [
+    latestEvaluation,
+    setLatestEvaluation,
+  ] = useState(null);
 
   const [interviewNotes, setInterviewNotes] =
     useState([]);
@@ -410,7 +525,7 @@ export const InterviewProvider = ({
   // ==========================================================
 
   const [timeRemaining, setTimeRemaining] =
-    useState(1200);
+    useState(INTERVIEW_DURATION);
 
   const [
     isTimerRunning,
@@ -425,6 +540,18 @@ export const InterviewProvider = ({
     interviewCompleted,
     setInterviewCompleted,
   ] = useState(false);
+
+  /*
+   * Possible values:
+   *
+   * "completed"
+   * "early"
+   * "time_limit"
+   */
+  const [
+    interviewCompletionReason,
+    setInterviewCompletionReason,
+  ] = useState("");
 
   // ==========================================================
   // ERROR
@@ -463,7 +590,8 @@ export const InterviewProvider = ({
       ]
     );
 
-  // Always show six main interview questions
+  // Always six MAIN questions.
+  // Follow-ups do not count.
   const totalQuestions =
     MAIN_QUESTION_LIMIT;
 
@@ -471,6 +599,41 @@ export const InterviewProvider = ({
     questions[
       currentQuestionIndex
     ] || EMPTY_QUESTION;
+
+  // ==========================================================
+  // QUESTION COUNTS
+  // ==========================================================
+
+  const mainQuestionCount =
+    questions.filter(
+      (question) =>
+        !question.isFollowUp
+    ).length;
+
+  /*
+   * Only answered MAIN questions count here.
+   *
+   * Follow-up answers are intentionally ignored.
+   */
+  const answeredMainQuestionCount =
+    questions.filter(
+      (question) =>
+        !question.isFollowUp &&
+        Boolean(
+          answers?.[question.id]?.trim()
+        )
+    ).length;
+
+  /*
+   * Only MAIN question evaluations are stored in
+   * scoreHistory, so this count represents the number
+   * of questions actually evaluated for the report.
+   */
+  const evaluatedQuestionCount =
+    scoreHistory.length;
+
+  const hasEvaluation =
+    evaluatedQuestionCount > 0;
 
   // ==========================================================
   // TIMER
@@ -490,8 +653,17 @@ export const InterviewProvider = ({
         setTimeRemaining(
           (previous) => {
             if (previous <= 1) {
-              setIsTimerRunning(
-                false
+              setIsTimerRunning(false);
+
+              setIsThinking(false);
+
+              setIsFollowUpPhase(false);
+
+              /*
+               * The timer ended the interview.
+               */
+              setInterviewCompletionReason(
+                "time_limit"
               );
 
               setInterviewCompleted(
@@ -513,6 +685,74 @@ export const InterviewProvider = ({
     timeRemaining,
     interviewCompleted,
   ]);
+
+  // ==========================================================
+  // SAVE EVALUATION
+  // ==========================================================
+
+  const saveEvaluation = (
+    evaluation,
+    question
+  ) => {
+    const normalizedEvaluation =
+      normalizeEvaluation(
+        evaluation,
+        question
+      );
+
+    // --------------------------------------------------------
+    // LIVE SCORE
+    // --------------------------------------------------------
+
+    setLiveScores(
+      normalizedEvaluation.scores
+    );
+
+    // --------------------------------------------------------
+    // LATEST EVALUATION
+    // --------------------------------------------------------
+
+    setLatestEvaluation(
+      normalizedEvaluation
+    );
+
+    // --------------------------------------------------------
+    // SCORE HISTORY
+    // --------------------------------------------------------
+    //
+    // Follow-ups are evaluated for feedback,
+    // but they should NOT count as independent
+    // main interview questions in the final report.
+    //
+
+    if (!question?.isFollowUp) {
+      setScoreHistory(
+        (previous) => [
+          ...previous,
+          normalizedEvaluation,
+        ]
+      );
+    }
+
+    // --------------------------------------------------------
+    // NOTES
+    // --------------------------------------------------------
+
+    const note =
+      createEvaluationNote(
+        evaluation,
+        question
+      );
+
+    setInterviewNotes(
+      (previous) => [
+        note,
+        ...previous,
+      ]
+    );
+
+    return normalizedEvaluation;
+  };
 
   // ==========================================================
   // SETUP INTERVIEW
@@ -563,9 +803,9 @@ export const InterviewProvider = ({
     customInterviewPrompt:
       selectedCustomPrompt,
   }) => {
-    // ========================================================
-    // SAVE CANDIDATE PROFILE
-    // ========================================================
+    // --------------------------------------------------------
+    // CANDIDATE
+    // --------------------------------------------------------
 
     setCandidateName(
       name?.trim() || ""
@@ -591,9 +831,9 @@ export const InterviewProvider = ({
       selectedGraduationYear || ""
     );
 
-    // ========================================================
-    // SAVE RESUME
-    // ========================================================
+    // --------------------------------------------------------
+    // RESUME
+    // --------------------------------------------------------
 
     setResumeFile(
       selectedResumeFile ||
@@ -605,9 +845,9 @@ export const InterviewProvider = ({
       extractedResumeText || ""
     );
 
-    // ========================================================
-    // SAVE INTERVIEW CONFIG
-    // ========================================================
+    // --------------------------------------------------------
+    // CONFIGURATION
+    // --------------------------------------------------------
 
     setRole(
       selectedRole || ""
@@ -647,25 +887,33 @@ export const InterviewProvider = ({
       selectedCustomPrompt?.trim() || ""
     );
 
-    // ========================================================
-    // RESET INTERVIEW
-    // ========================================================
+    // --------------------------------------------------------
+    // RESET QUESTIONS
+    // --------------------------------------------------------
 
     setQuestions([]);
 
     setCurrentQuestionIndex(0);
 
+    // --------------------------------------------------------
+    // RESET ANSWERS
+    // --------------------------------------------------------
+
     setAnswers({});
 
     setFollowUpAnswers({});
+
+    // --------------------------------------------------------
+    // RESET INTERVIEW STATE
+    // --------------------------------------------------------
 
     setIsFollowUpPhase(false);
 
     setIsThinking(true);
 
-    // ========================================================
+    // --------------------------------------------------------
     // RESET EVALUATION
-    // ========================================================
+    // --------------------------------------------------------
 
     setLiveScores({
       ...DEFAULT_SCORES,
@@ -673,23 +921,33 @@ export const InterviewProvider = ({
 
     setScoreHistory([]);
 
+    setLatestEvaluation(null);
+
     setInterviewNotes([]);
 
-    // ========================================================
+    // --------------------------------------------------------
     // RESET TIMER
-    // ========================================================
+    // --------------------------------------------------------
 
-    setTimeRemaining(1200);
+    setTimeRemaining(
+      INTERVIEW_DURATION
+    );
 
     setIsTimerRunning(true);
 
+    // --------------------------------------------------------
+    // RESET COMPLETION
+    // --------------------------------------------------------
+
     setInterviewCompleted(false);
+
+    setInterviewCompletionReason("");
 
     setInterviewError("");
 
-    // ========================================================
-    // GENERATE FIRST AI QUESTION
-    // ========================================================
+    // --------------------------------------------------------
+    // GENERATE FIRST QUESTION
+    // --------------------------------------------------------
 
     try {
       const response =
@@ -733,7 +991,8 @@ export const InterviewProvider = ({
       const generatedQuestion =
         normalizeQuestion(
           response?.question,
-          0
+          0,
+          false
         );
 
       if (
@@ -752,8 +1011,7 @@ export const InterviewProvider = ({
 
       setInterviewNotes([
         {
-          id:
-            Date.now(),
+          id: Date.now(),
 
           type: "success",
 
@@ -804,9 +1062,9 @@ export const InterviewProvider = ({
     const question =
       currentQuestion;
 
-    // ========================================================
+    // --------------------------------------------------------
     // SAVE ANSWER
-    // ========================================================
+    // --------------------------------------------------------
 
     setAnswers(
       (previous) => ({
@@ -822,9 +1080,9 @@ export const InterviewProvider = ({
     setInterviewError("");
 
     try {
-      // ======================================================
+      // ------------------------------------------------------
       // AI EVALUATION
-      // ======================================================
+      // ------------------------------------------------------
 
       const evaluationResponse =
         await apiRequest(
@@ -860,46 +1118,18 @@ export const InterviewProvider = ({
         evaluationResponse?.evaluation ||
         evaluationResponse;
 
-      // ======================================================
-      // UPDATE SCORES
-      // ======================================================
+      // ------------------------------------------------------
+      // SAVE EVALUATION
+      // ------------------------------------------------------
 
-      const newScores =
-        normalizeScores(
-          evaluation
-        );
-
-      setLiveScores(
-        newScores
+      saveEvaluation(
+        evaluation,
+        question
       );
 
-      setScoreHistory(
-        (previous) => [
-          ...previous,
-          newScores,
-        ]
-      );
-
-      // ======================================================
-      // UPDATE NOTES
-      // ======================================================
-
-      const note =
-        createEvaluationNote(
-          evaluation,
-          question
-        );
-
-      setInterviewNotes(
-        (previous) => [
-          note,
-          ...previous,
-        ]
-      );
-
-      // ======================================================
-      // GENERATE CONTEXTUAL FOLLOW-UP
-      // ======================================================
+      // ------------------------------------------------------
+      // GENERATE FOLLOW-UP
+      // ------------------------------------------------------
 
       let followUpQuestion =
         null;
@@ -932,7 +1162,8 @@ export const InterviewProvider = ({
           followUpQuestion =
             normalizeQuestion(
               rawFollowUp,
-              questions.length
+              questions.length,
+              true
             );
         }
       } catch (followUpError) {
@@ -942,13 +1173,16 @@ export const InterviewProvider = ({
         );
       }
 
-      // ======================================================
+      // ------------------------------------------------------
       // SHOW FOLLOW-UP
-      // ======================================================
+      // ------------------------------------------------------
 
       if (
         followUpQuestion?.question
       ) {
+        const followUpIndex =
+          questions.length;
+
         setQuestions(
           (previous) => [
             ...previous,
@@ -956,17 +1190,16 @@ export const InterviewProvider = ({
           ]
         );
 
-        // Move to newly created follow-up
         setCurrentQuestionIndex(
-          questions.length
+          followUpIndex
         );
 
-        setIsFollowUpPhase(
-          true
-        );
+        setIsFollowUpPhase(true);
       } else {
-        // No follow-up available
-        // Continue to next main question
+        // ----------------------------------------------------
+        // NO FOLLOW-UP
+        // ----------------------------------------------------
+
         await generateNextQuestion(
           question,
           trimmedAnswer
@@ -995,13 +1228,19 @@ export const InterviewProvider = ({
     previousQuestion,
     previousAnswerOverride = ""
   ) => {
-    // ========================================================
-    // CHECK LIMIT
-    // ========================================================
+    const mainQuestions =
+      questions.filter(
+        (question) =>
+          !question.isFollowUp
+      );
+
+    // --------------------------------------------------------
+    // ALL SIX MAIN QUESTIONS COMPLETED
+    // --------------------------------------------------------
 
     if (
-      currentQuestionIndex >=
-      MAIN_QUESTION_LIMIT - 1
+      mainQuestions.length >=
+      MAIN_QUESTION_LIMIT
     ) {
       finishInterview();
       return;
@@ -1055,14 +1294,15 @@ export const InterviewProvider = ({
               "",
 
             questionNumber:
-              currentQuestionIndex + 2,
+              mainQuestions.length + 1,
           }
         );
 
       const nextQuestion =
         normalizeQuestion(
           response?.question,
-          questions.length
+          questions.length,
+          false
         );
 
       if (
@@ -1073,7 +1313,9 @@ export const InterviewProvider = ({
         );
       }
 
-      // Add new main question
+      const nextIndex =
+        questions.length;
+
       setQuestions(
         (previous) => [
           ...previous,
@@ -1081,15 +1323,11 @@ export const InterviewProvider = ({
         ]
       );
 
-      // Move to next question
       setCurrentQuestionIndex(
-        (currentIndex) =>
-          currentIndex + 1
+        nextIndex
       );
 
-      setIsFollowUpPhase(
-        false
-      );
+      setIsFollowUpPhase(false);
     } catch (error) {
       console.error(
         "❌ Failed to generate next question:",
@@ -1114,7 +1352,8 @@ export const InterviewProvider = ({
   ) => {
     if (
       !followUpText?.trim() ||
-      isThinking
+      isThinking ||
+      !currentQuestion?.question
     ) {
       return;
     }
@@ -1122,49 +1361,120 @@ export const InterviewProvider = ({
     const trimmedFollowUp =
       followUpText.trim();
 
-    const currentId =
-      currentQuestion?.id;
+    const followUpQuestion =
+      currentQuestion;
 
-    // ========================================================
+    // --------------------------------------------------------
     // SAVE FOLLOW-UP ANSWER
-    // ========================================================
+    // --------------------------------------------------------
 
     setFollowUpAnswers(
       (previous) => ({
         ...previous,
 
-        [currentId]:
+        [followUpQuestion.id]:
           trimmedFollowUp,
       })
     );
 
-    setIsFollowUpPhase(false);
+    setIsThinking(true);
 
     setInterviewError("");
 
-    // ========================================================
-    // CHECK INTERVIEW LENGTH
-    // ========================================================
+    try {
+      // ------------------------------------------------------
+      // EVALUATE FOLLOW-UP
+      // ------------------------------------------------------
 
-    if (
-      currentQuestionIndex >=
-      MAIN_QUESTION_LIMIT - 1
-    ) {
-      finishInterview();
-      return;
+      const evaluationResponse =
+        await apiRequest(
+          "/api/interview/evaluate",
+          {
+            candidateName,
+
+            role:
+              effectiveRole,
+
+            difficulty,
+
+            question:
+              followUpQuestion.question,
+
+            answer:
+              trimmedFollowUp,
+
+            topic:
+              followUpQuestion.topic,
+
+            expectedConcepts:
+              followUpQuestion.expectedConcepts,
+
+            resumeText,
+
+            selectedTopics:
+              allSelectedSkills,
+          }
+        );
+
+      const evaluation =
+        evaluationResponse?.evaluation ||
+        evaluationResponse;
+
+      // ------------------------------------------------------
+      // SAVE FOLLOW-UP EVALUATION
+      // ------------------------------------------------------
+      //
+      // saveEvaluation() updates liveScores and notes,
+      // but deliberately does NOT add follow-ups to
+      // scoreHistory.
+      //
+
+      saveEvaluation(
+        evaluation,
+        followUpQuestion
+      );
+
+      setIsFollowUpPhase(false);
+
+      // ------------------------------------------------------
+      // CHECK MAIN QUESTION COUNT
+      // ------------------------------------------------------
+
+      const mainQuestions =
+        questions.filter(
+          (question) =>
+            !question.isFollowUp
+        );
+
+      if (
+        mainQuestions.length >=
+        MAIN_QUESTION_LIMIT
+      ) {
+        finishInterview();
+        return;
+      }
+
+      // ------------------------------------------------------
+      // GENERATE NEXT MAIN QUESTION
+      // ------------------------------------------------------
+
+      await generateNextQuestion(
+        followUpQuestion,
+        trimmedFollowUp
+      );
+    } catch (error) {
+      console.error(
+        "❌ Follow-up evaluation failed:",
+        error
+      );
+
+      setInterviewError(
+        error?.message ||
+          "Unable to evaluate the follow-up answer."
+      );
+    } finally {
+      setIsThinking(false);
     }
-
-    // ========================================================
-    // GENERATE NEXT MAIN QUESTION
-    // ========================================================
-
-    const previousQuestion =
-      currentQuestion;
-
-    await generateNextQuestion(
-      previousQuestion,
-      trimmedFollowUp
-    );
   };
 
   // ==========================================================
@@ -1185,7 +1495,14 @@ export const InterviewProvider = ({
       index
     );
 
-    setIsFollowUpPhase(false);
+    const selectedQuestion =
+      questions[index];
+
+    setIsFollowUpPhase(
+      Boolean(
+        selectedQuestion?.isFollowUp
+      )
+    );
 
     setIsThinking(false);
 
@@ -1197,13 +1514,64 @@ export const InterviewProvider = ({
   // ==========================================================
 
   const finishInterview = () => {
+    // --------------------------------------------------------
+    // COUNT ANSWERED MAIN QUESTIONS
+    // --------------------------------------------------------
+
+    const answeredCount =
+      questions.filter(
+        (question) =>
+          !question.isFollowUp &&
+          Boolean(
+            answers?.[question.id]?.trim()
+          )
+      ).length;
+
+    // --------------------------------------------------------
+    // MANDATORY MINIMUM
+    // --------------------------------------------------------
+
+    if (
+      answeredCount <
+      MINIMUM_ANSWERED_QUESTIONS
+    ) {
+      console.warn(
+        `Interview requires at least ${MINIMUM_ANSWERED_QUESTIONS} answered main questions.`
+      );
+
+      return false;
+    }
+
+    // --------------------------------------------------------
+    // STOP INTERVIEW
+    // --------------------------------------------------------
+
     setIsTimerRunning(false);
 
     setIsThinking(false);
 
     setIsFollowUpPhase(false);
 
+    // --------------------------------------------------------
+    // COMPLETION REASON
+    // --------------------------------------------------------
+
+    if (
+      answeredCount >=
+      MAIN_QUESTION_LIMIT
+    ) {
+      setInterviewCompletionReason(
+        "completed"
+      );
+    } else {
+      setInterviewCompletionReason(
+        "early"
+      );
+    }
+
     setInterviewCompleted(true);
+
+    return true;
   };
 
   // ==========================================================
@@ -1211,7 +1579,10 @@ export const InterviewProvider = ({
   // ==========================================================
 
   const resetInterview = () => {
-    // Candidate
+    // --------------------------------------------------------
+    // CANDIDATE
+    // --------------------------------------------------------
+
     setCandidateName("");
 
     setEducationLevel("");
@@ -1224,12 +1595,18 @@ export const InterviewProvider = ({
 
     setGraduationYear("");
 
-    // Resume
+    // --------------------------------------------------------
+    // RESUME
+    // --------------------------------------------------------
+
     setResumeFile(null);
 
     setResumeText("");
 
-    // Configuration
+    // --------------------------------------------------------
+    // CONFIGURATION
+    // --------------------------------------------------------
+
     setRole("");
 
     setCustomRole("");
@@ -1244,35 +1621,61 @@ export const InterviewProvider = ({
 
     setCustomInterviewPrompt("");
 
-    // Questions
+    // --------------------------------------------------------
+    // QUESTIONS
+    // --------------------------------------------------------
+
     setQuestions([]);
 
     setCurrentQuestionIndex(0);
+
+    // --------------------------------------------------------
+    // ANSWERS
+    // --------------------------------------------------------
 
     setAnswers({});
 
     setFollowUpAnswers({});
 
+    // --------------------------------------------------------
+    // INTERVIEW STATE
+    // --------------------------------------------------------
+
     setIsFollowUpPhase(false);
 
     setIsThinking(false);
 
-    // Evaluation
+    // --------------------------------------------------------
+    // EVALUATION
+    // --------------------------------------------------------
+
     setLiveScores({
       ...DEFAULT_SCORES,
     });
 
     setScoreHistory([]);
 
+    setLatestEvaluation(null);
+
     setInterviewNotes([]);
 
-    // Timer
-    setTimeRemaining(1200);
+    // --------------------------------------------------------
+    // TIMER
+    // --------------------------------------------------------
+
+    setTimeRemaining(
+      INTERVIEW_DURATION
+    );
 
     setIsTimerRunning(false);
 
-    // Completion
+    // --------------------------------------------------------
+    // COMPLETION
+    // --------------------------------------------------------
+
     setInterviewCompleted(false);
+
+    setInterviewCompletionReason("");
 
     setInterviewError("");
   };
@@ -1283,26 +1686,57 @@ export const InterviewProvider = ({
 
   const getReport = () => {
     return generateInterviewReport({
+      // ------------------------------------------------------
+      // BASIC
+      // ------------------------------------------------------
+
       candidateName,
 
       role: effectiveRole,
 
       difficulty,
 
+      // ------------------------------------------------------
+      // COMPLETION
+      // ------------------------------------------------------
+
+      interviewCompletionReason,
+
+      answeredMainQuestionCount,
+
+      // ------------------------------------------------------
+      // SCORES
+      // ------------------------------------------------------
+
       liveScores,
 
       scoreHistory,
+
+      // ------------------------------------------------------
+      // ANSWERS
+      // ------------------------------------------------------
 
       answers,
 
       followUpAnswers,
 
+      // ------------------------------------------------------
+      // QUESTIONS
+      // ------------------------------------------------------
+
       questions,
+
+      // ------------------------------------------------------
+      // NOTES
+      // ------------------------------------------------------
 
       notes:
         interviewNotes,
 
-      // Candidate
+      // ------------------------------------------------------
+      // CANDIDATE PROFILE
+      // ------------------------------------------------------
+
       educationLevel,
 
       degree,
@@ -1313,12 +1747,18 @@ export const InterviewProvider = ({
 
       graduationYear,
 
-      // Resume
+      // ------------------------------------------------------
+      // RESUME
+      // ------------------------------------------------------
+
       resumeFile,
 
       resumeText,
 
-      // Configuration
+      // ------------------------------------------------------
+      // CONFIGURATION
+      // ------------------------------------------------------
+
       selectedTopics,
 
       customSkills,
@@ -1394,6 +1834,10 @@ export const InterviewProvider = ({
 
         currentQuestion,
 
+        mainQuestionCount,
+
+        answeredMainQuestionCount,
+
         // ====================================================
         // ANSWERS
         // ====================================================
@@ -1420,6 +1864,12 @@ export const InterviewProvider = ({
 
         scoreHistory,
 
+        latestEvaluation,
+
+        hasEvaluation,
+
+        evaluatedQuestionCount,
+
         interviewNotes,
 
         // ====================================================
@@ -1435,6 +1885,11 @@ export const InterviewProvider = ({
         // ====================================================
 
         interviewCompleted,
+
+        interviewCompletionReason,
+
+        minimumAnsweredQuestions:
+          MINIMUM_ANSWERED_QUESTIONS,
 
         // ====================================================
         // ACTIONS

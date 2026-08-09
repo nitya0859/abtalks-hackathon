@@ -63,7 +63,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // ============================================================
-// GENERATE FIRST QUESTION
+// GENERATE INTERVIEW QUESTION
 // ============================================================
 
 app.post("/api/interview/start", async (req, res) => {
@@ -78,6 +78,15 @@ app.post("/api/interview/start", async (req, res) => {
       interviewType,
       customInterviewPrompt,
       resumeText,
+
+      // ======================================================
+      // DYNAMIC QUESTIONING CONTEXT
+      // ======================================================
+
+      previousQuestion,
+      previousTopic,
+      previousAnswer,
+      questionNumber,
     } = req.body;
 
     console.log("");
@@ -87,6 +96,10 @@ app.post("/api/interview/start", async (req, res) => {
     console.log("Difficulty:", difficulty);
     console.log("Skills:", selectedTopics);
     console.log("Interview type:", interviewType);
+    console.log(
+      "Question number:",
+      questionNumber || 1
+    );
 
     if (!isAIConfigured()) {
       return res.status(500).json({
@@ -94,6 +107,13 @@ app.post("/api/interview/start", async (req, res) => {
         error: "OpenAI API key is not configured.",
       });
     }
+
+    // ========================================================
+    // GENERATE QUESTION
+    //
+    // The previous question, topic and answer are forwarded
+    // so the AI can generate the next question dynamically.
+    // ========================================================
 
     const question = await generateFirstQuestion({
       candidateName,
@@ -105,16 +125,25 @@ app.post("/api/interview/start", async (req, res) => {
       interviewType,
       customInterviewPrompt,
       resumeText,
+
+      // Dynamic questioning context
+      previousQuestion,
+      previousTopic,
+      previousAnswer,
+      questionNumber,
     });
 
-    console.log("✅ First question generated.");
+    console.log("✅ Question generated.");
 
     return res.json({
       success: true,
       question,
     });
   } catch (error) {
-    console.error("❌ Generate question error:", error);
+    console.error(
+      "❌ Generate question error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -187,7 +216,10 @@ app.post("/api/interview/evaluate", async (req, res) => {
       evaluation,
     });
   } catch (error) {
-    console.error("❌ Evaluation error:", error);
+    console.error(
+      "❌ Evaluation error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -215,7 +247,9 @@ app.post(
       } = req.body;
 
       console.log("");
-      console.log("🔄 Generating follow-up question...");
+      console.log(
+        "🔄 Generating follow-up question..."
+      );
 
       if (!question) {
         return res.status(400).json({
@@ -344,7 +378,9 @@ server.on("error", (error) => {
   console.error(
     "❌ ========================================"
   );
-  console.error("❌ SERVER FAILED TO START");
+  console.error(
+    "❌ SERVER FAILED TO START"
+  );
   console.error(
     "❌ ========================================"
   );

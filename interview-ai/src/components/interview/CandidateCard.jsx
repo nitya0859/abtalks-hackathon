@@ -17,12 +17,31 @@ const CandidateCard = () => {
     fieldOfStudy,
     institution,
     graduationYear,
-    effectiveRole,
+    role,
+    customRole,
     difficulty,
-    allSelectedSkills,
+    selectedTopics,
+    customSkills,
     interviewType,
   } = useInterview();
 
+  // Use custom role when "Other" is selected
+  const effectiveRole =
+    role === "Other"
+      ? customRole
+      : role;
+
+  // Combine selected predefined skills + custom skills
+  const allSelectedSkills = [
+    ...(Array.isArray(selectedTopics)
+      ? selectedTopics
+      : []),
+    ...(Array.isArray(customSkills)
+      ? customSkills
+      : []),
+  ];
+
+  // Candidate initials
   const initials = candidateName
     ? candidateName
         .trim()
@@ -39,8 +58,10 @@ const CandidateCard = () => {
 
   return (
     <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 shadow-xl">
+
       {/* Candidate Header */}
       <div className="flex items-center gap-3">
+
         {/* Avatar */}
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-violet-700 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-purple-900/30 flex-shrink-0">
           {initials}
@@ -59,7 +80,7 @@ const CandidateCard = () => {
 
         {/* Difficulty */}
         <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 flex-shrink-0">
-          {difficulty}
+          {difficulty || "Medium"}
         </span>
       </div>
 
@@ -69,6 +90,7 @@ const CandidateCard = () => {
         institution ||
         graduationYear) && (
         <div className="mt-4 pt-3 border-t border-slate-800/70">
+
           <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">
             Education
           </p>
@@ -94,7 +116,9 @@ const CandidateCard = () => {
 
       {/* Interview Configuration */}
       <div className="mt-4 pt-3 border-t border-slate-800/70">
+
         <div className="flex items-center justify-between gap-2">
+
           <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
             Interview
           </p>
@@ -102,11 +126,13 @@ const CandidateCard = () => {
           <span className="text-[10px] text-purple-300 truncate">
             {interviewTypeLabel}
           </span>
+
         </div>
 
         {/* Skills */}
         {allSelectedSkills.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
+
             {allSelectedSkills
               .slice(0, 5)
               .map((skill) => (
@@ -123,9 +149,12 @@ const CandidateCard = () => {
                 +{allSelectedSkills.length - 5}
               </span>
             )}
+
           </div>
         )}
+
       </div>
+
     </div>
   );
 };

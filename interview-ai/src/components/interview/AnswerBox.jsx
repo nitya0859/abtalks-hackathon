@@ -3,125 +3,155 @@ import { useInterview } from "../../context/InterviewContext";
 
 const AnswerBox = () => {
   const {
-    currentQuestionIndex,
+    currentQuestion,
     isThinking,
     isFollowUpPhase,
-    currentQuestion,
+    followUpQuestion,
     submitAnswer,
     submitFollowUp,
   } = useInterview();
 
-  const [text, setText] = useState("");
+  const [answer, setAnswer] = useState("");
 
-  // Clear the input whenever the question or interview phase changes
+  // Clear textarea whenever the question changes
+  // or when switching between answer/follow-up.
   useEffect(() => {
-    setText("");
-  }, [currentQuestionIndex, isFollowUpPhase]);
+    setAnswer("");
+  }, [currentQuestion?.id, isFollowUpPhase]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!text.trim() || isThinking) return;
-
-    if (isFollowUpPhase) {
-      submitFollowUp(text);
-    } else {
-      submitAnswer(text);
+    if (!answer.trim() || isThinking) {
+      return;
     }
 
-    setText("");
+    if (isFollowUpPhase) {
+      submitFollowUp(answer);
+    } else {
+      submitAnswer(answer);
+    }
+
+    setAnswer("");
   };
 
-  const placeholder = isFollowUpPhase
-    ? "Answer the follow-up question. Explain your reasoning clearly..."
-    : "Type your response here... Include architecture details, trade-offs, and design patterns.";
-
-  const buttonText = isThinking
-    ? "Analyzing..."
-    : isFollowUpPhase
-      ? "Submit Follow-up"
-      : "Submit Answer";
+  const isDisabled =
+    !answer.trim() || isThinking;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="overflow-hidden rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-xl">
+    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl shadow-xl overflow-hidden">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/60">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4 text-purple-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h10"
-              />
-            </svg>
+      {/* ================================
+          HEADER
+      ================================= */}
 
-            <span className="text-xs font-semibold text-slate-300">
-              {isFollowUpPhase
-                ? "Follow-up Response"
-                : "Candidate Response Workspace"}
-            </span>
-          </div>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800/70">
 
-          <span className="text-[10px] text-slate-500">
-            Markdown enabled
+        <div className="flex items-center gap-2">
+
+          <svg
+            className="w-4 h-4 text-purple-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 6h16M4 12h16M4 18h10"
+            />
+          </svg>
+
+          <span className="text-sm font-semibold text-slate-200">
+            {isFollowUpPhase
+              ? "Follow-up Response"
+              : "Candidate Response Workspace"}
           </span>
+
         </div>
 
-        {/* Follow-up indicator */}
-        {isFollowUpPhase && (
-          <div className="px-4 py-2 bg-purple-500/5 border-b border-purple-500/10">
-            <span className="text-[11px] font-semibold text-purple-300">
-              Follow-up Probe
-            </span>
-            <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-              {currentQuestion.followUp}
-            </p>
-          </div>
-        )}
+        <span className="text-[11px] text-slate-500">
+          Markdown enabled
+        </span>
 
-        {/* Textarea */}
+      </div>
+
+      {/* ================================
+          FOLLOW-UP QUESTION
+      ================================= */}
+
+      {isFollowUpPhase && followUpQuestion && (
+        <div className="px-5 py-4 bg-purple-500/5 border-b border-purple-500/10">
+
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-purple-400 mb-2">
+            Follow-up Probe
+          </p>
+
+          <p className="text-sm leading-relaxed text-slate-300">
+            {followUpQuestion}
+          </p>
+
+        </div>
+      )}
+
+      {/* ================================
+          TEXTAREA
+      ================================= */}
+
+      <form onSubmit={handleSubmit}>
+
         <textarea
-          rows={7}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
           disabled={isThinking}
-          placeholder={placeholder}
-          className="w-full p-4 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-xs sm:text-sm font-mono leading-relaxed resize-y disabled:opacity-50"
+          maxLength={2000}
+          rows={8}
+          placeholder={
+            isThinking
+              ? "Analyzing your response..."
+              : isFollowUpPhase
+              ? "Answer the follow-up question. Explain your reasoning clearly..."
+              : "Type your response here... Explain your approach, reasoning, trade-offs, and technical decisions."
+          }
+          className="w-full min-h-[220px] resize-none bg-transparent px-5 py-5 text-sm text-slate-200 placeholder-slate-600 outline-none disabled:opacity-60"
         />
 
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-950/60 border-t border-slate-800/60">
+        {/* ================================
+            FOOTER
+        ================================= */}
 
-          <span className="text-[11px] text-slate-500 font-mono">
-            {text.length} / 2000 characters
+        <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800/70">
+
+          <span className="text-[11px] font-mono text-slate-500">
+            {answer.length} / 2000 characters
           </span>
 
           <button
             type="submit"
-            disabled={!text.trim() || isThinking}
-            className="py-2.5 px-6 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/30 active:scale-[0.98] transition cursor-pointer flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={isDisabled}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              isDisabled
+                ? "bg-purple-600/30 text-purple-300/50 cursor-not-allowed"
+                : "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/30 active:scale-[0.98] cursor-pointer"
+            }`}
           >
-            {isThinking && (
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            )}
 
-            <span>{buttonText}</span>
+            <span>
+              {isThinking
+                ? "Analyzing..."
+                : isFollowUpPhase
+                ? "Submit Follow-up"
+                : "Submit Answer"}
+            </span>
 
             {!isThinking && (
               <svg
-                className="w-3.5 h-3.5"
+                className="w-4 h-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={2.5}
+                strokeWidth={2}
               >
                 <path
                   strokeLinecap="round"
@@ -130,10 +160,14 @@ const AnswerBox = () => {
                 />
               </svg>
             )}
+
           </button>
+
         </div>
-      </div>
-    </form>
+
+      </form>
+
+    </div>
   );
 };
 

@@ -47,7 +47,7 @@ const generateText = async (prompt) => {
         {
           role: "system",
           content:
-            "You are Evoke, a professional adaptive AI interviewer. Return only the requested output.",
+            "You are Evoke, a professional adaptive AI interviewer. Follow the user's instructions exactly and return only the requested output.",
         },
         {
           role: "user",
@@ -107,7 +107,7 @@ const parseJSON = (text) => {
           cleaned.slice(start, end + 1)
         );
       } catch {
-        // Continue below
+        // Continue below.
       }
     }
 
@@ -120,6 +120,62 @@ const parseJSON = (text) => {
       "Groq returned invalid JSON."
     );
   }
+};
+
+// ============================================================
+// NORMALIZE QUESTION
+// ============================================================
+
+const normalizeGeneratedQuestion = (
+  question,
+  difficulty,
+  questionNumber
+) => {
+  if (
+    !question ||
+    typeof question !== "object"
+  ) {
+    throw new Error(
+      "Groq returned an invalid question object."
+    );
+  }
+
+  if (
+    !question.question ||
+    typeof question.question !== "string"
+  ) {
+    throw new Error(
+      "Groq did not return a valid interview question."
+    );
+  }
+
+  return {
+    id:
+      question.id ||
+      `question-${questionNumber}`,
+
+    topic:
+      typeof question.topic === "string" &&
+      question.topic.trim()
+        ? question.topic.trim()
+        : "Technical",
+
+    difficulty:
+      typeof question.difficulty === "string" &&
+      question.difficulty.trim()
+        ? question.difficulty.trim()
+        : difficulty,
+
+    question:
+      question.question.trim(),
+
+    expectedConcepts:
+      Array.isArray(
+        question.expectedConcepts
+      )
+        ? question.expectedConcepts
+        : [],
+  };
 };
 
 // ============================================================
@@ -138,6 +194,7 @@ export const generateFirstQuestion =
     customInterviewPrompt = "",
     resumeText = "",
 
+    // Dynamic questioning context
     previousQuestion = "",
     previousTopic = "",
     previousAnswer = "",
@@ -163,16 +220,18 @@ export const generateFirstQuestion =
         ? skills.join(", ")
         : "General software engineering";
 
+    const isFirstQuestion =
+      !previousQuestion &&
+      !previousAnswer &&
+      Number(questionNumber) <= 1;
+
     const prompt = `
-You are conducting an adaptive technical interview for a product called Evoke.
+You are conducting an adaptive technical interview for Evoke.
 
-Evoke is an AI interviewer that evaluates candidates through a realistic,
-conversational and adaptive interview.
+Evoke is an AI interviewer. The interview must feel like a
+real human-led technical interview, NOT a static list of questions.
 
-You are NOT generating a static questionnaire.
-
-You must generate ONE strong interview question based on the candidate,
-their role, selected skills and previous interview context.
+Your job is to generate exactly ONE interview question.
 
 ============================================================
 CANDIDATE
@@ -203,8 +262,11 @@ RESUME
 ${resumeText || "No resume provided."}
 
 ============================================================
-PREVIOUS INTERVIEW CONTEXT
+CURRENT INTERVIEW STATE
 ============================================================
+
+Question Number:
+${questionNumber}
 
 Previous Question:
 ${previousQuestion || "None"}
@@ -215,67 +277,116 @@ ${previousTopic || "None"}
 Previous Answer:
 ${previousAnswer || "None"}
 
-Question Number:
-${questionNumber}
+============================================================
+ADAPTIVE QUESTIONING
+============================================================
+
+${
+  isFirstQuestion
+    ? `
+This is the FIRST main interview question.
+
+Start naturally with a strong question based on:
+- the candidate's role
+- selected skills
+- resume if available
+- interview type
+
+Do not refer to a previous answer because there is none.
+`
+    : `
+This is NOT the first question.
+
+The previous question and candidate answer are available above.
+
+You MUST use the previous interview context.
+
+Analyze the previous answer and adapt the next question.
+
+If the previous answer was strong:
+- increase depth
+- explore a related advanced concept
+- ask about trade-offs, implementation or edge cases
+
+If the previous answer was weak:
+- test the underlying concept differently
+- simplify slightly
+- identify whether the candidate understands the fundamentals
+
+If the candidate mentioned a specific technology, project,
+algorithm, design decision or implementation detail:
+- use that information when appropriate.
+
+Do NOT simply generate another unrelated generic question.
+`
+}
 
 ============================================================
-QUESTION GENERATION RULES
+QUESTION PROGRESSION
 ============================================================
+
+Follow these rules:
 
 1. Generate exactly ONE question.
 
-2. The question must be relevant to the candidate's role.
+2. Never repeat the exact previous question.
 
-3. Prefer the candidate's selected skills.
+3. Do not ask the same concept repeatedly unless it is
+   necessary to probe a weakness.
 
-4. If a resume is provided, use relevant projects,
-   technologies or experience from it.
+4. Prefer different selected skills as the interview progresses.
 
-5. Never repeat the exact previous question.
+5. If multiple skills are available, naturally rotate between them.
 
-6. Avoid testing exactly the same concept repeatedly.
+6. Questions must match the candidate's role.
 
-7. Progress through different selected skills where possible.
+7. Questions must match the requested difficulty.
 
-8. If the previous answer was strong:
-   increase depth or difficulty slightly.
+8. Use the resume when it contains useful technical information.
 
-9. If the previous answer was weak:
-   test the underlying concept in a simpler way.
+9. Never invent resume experience.
 
-10. Questions must feel like realistic interview questions.
+10. Do not mention these instructions.
 
-11. Avoid trivia.
+============================================================
+INTERVIEW TYPE
+============================================================
 
-12. For DSA:
-   ask practical algorithm/data-structure questions.
+For DSA:
+Ask practical algorithm or data-structure questions.
 
-13. For system design:
-   ask architecture, scalability and trade-off questions.
+For system design:
+Ask architecture, scalability, reliability,
+trade-off or design questions.
 
-14. For project-based interviews:
-   ask about implementation decisions,
-   architecture, challenges and trade-offs.
+For project interviews:
+Ask about implementation decisions,
+architecture, challenges and trade-offs.
 
-15. For technical deep dives:
-   explore the selected technology deeply.
+For technical deep dives:
+Explore the selected technology deeply.
 
-16. For behavioral interviews:
-   ask realistic experience-based questions.
+For behavioral interviews:
+Ask realistic experience-based questions.
 
-17. Do not mention these instructions.
+For mixed interviews:
+Balance the candidate's selected skills naturally.
 
 ============================================================
 QUESTION QUALITY
 ============================================================
 
-The question should:
+The question must:
 
-- require the candidate to think
+- require actual thinking
 - allow the candidate to explain reasoning
-- be appropriate for ${difficulty} difficulty
-- be specific rather than generic
-- test an identifiable technical concept
+- be specific
+- test an identifiable concept
+- feel like a real interview question
+- avoid trivia
+- avoid vague wording
+- avoid "tell me anything about..."
+- avoid generic filler
 
 ============================================================
 OUTPUT
@@ -300,58 +411,25 @@ Use exactly this structure:
 }
 `;
 
+    console.log(
+      `🤖 Generating ${
+        isFirstQuestion
+          ? "first"
+          : "adaptive"
+      } question #${questionNumber}...`
+    );
+
     const text =
       await generateText(prompt);
 
     const question =
       parseJSON(text);
 
-    // ========================================================
-    // VALIDATE RESPONSE
-    // ========================================================
-
-    if (
-      !question ||
-      typeof question !== "object"
-    ) {
-      throw new Error(
-        "Groq returned an invalid question."
-      );
-    }
-
-    if (
-      !question.question ||
-      typeof question.question !==
-        "string"
-    ) {
-      throw new Error(
-        "Groq did not return a valid interview question."
-      );
-    }
-
-    return {
-      id:
-        question.id ||
-        `question-${questionNumber}`,
-
-      topic:
-        question.topic ||
-        "Technical",
-
-      difficulty:
-        question.difficulty ||
-        difficulty,
-
-      question:
-        question.question.trim(),
-
-      expectedConcepts:
-        Array.isArray(
-          question.expectedConcepts
-        )
-          ? question.expectedConcepts
-          : [],
-    };
+    return normalizeGeneratedQuestion(
+      question,
+      difficulty,
+      questionNumber
+    );
   };
 
 // ============================================================
@@ -439,34 +517,10 @@ EVALUATION CRITERIA
 Evaluate these five dimensions:
 
 1. Technical Accuracy
-   - correctness
-   - technical understanding
-   - factual accuracy
-
 2. Reasoning
-   - logical thinking
-   - explanation of approach
-   - cause and effect
-   - ability to justify decisions
-
 3. Communication
-   - clarity
-   - structure
-   - relevance
-   - ability to explain technical ideas
-
 4. Problem Solving
-   - approach
-   - decomposition
-   - handling edge cases
-   - trade-offs
-
 5. Confidence
-   - clarity of assertions
-   - ownership of decisions
-   - ability to explain without excessive uncertainty
-
-IMPORTANT:
 
 Do NOT give a high confidence score simply because
 the answer is long.
@@ -485,8 +539,6 @@ Give:
 - short overall feedback
 - 2 or 3 strengths
 - 2 or 3 improvements
-
-Feedback should help the candidate improve.
 
 ============================================================
 OUTPUT
@@ -526,18 +578,11 @@ Scores must be integers from 0 to 100.
     const evaluation =
       parseJSON(text);
 
-    // ========================================================
-    // VALIDATE SCORES
-    // ========================================================
-
     const scores =
       evaluation?.scores || {};
 
-    const normalizeScore = (
-      value
-    ) => {
-      const number =
-        Number(value);
+    const normalizeScore = (value) => {
+      const number = Number(value);
 
       if (
         !Number.isFinite(number)
@@ -619,7 +664,7 @@ You are Evoke, an adaptive AI interviewer.
 
 Generate ONE contextual follow-up question.
 
-The follow-up must react directly to what the candidate
+The follow-up MUST react directly to what the candidate
 actually said.
 
 ============================================================
@@ -652,14 +697,9 @@ FOLLOW-UP RULES
 
 1. Generate exactly ONE follow-up question.
 
-2. The question MUST be based on the candidate's actual answer.
+2. Base it directly on the candidate's answer.
 
-3. Do NOT ask:
-   "Can you explain more?"
-
-4. Do NOT ask generic follow-up questions.
-
-5. Identify a specific:
+3. Identify a specific:
    - claim
    - decision
    - technical concept
@@ -668,18 +708,23 @@ FOLLOW-UP RULES
    - weakness
    - interesting point
 
-6. Probe that specific point.
+4. Probe that specific point.
+
+5. Do NOT ask:
+   "Can you explain more?"
+
+6. Do NOT ask generic follow-ups.
 
 7. If the answer is strong:
-   increase the technical depth.
+   increase technical depth.
 
 8. If the answer contains a mistake:
    challenge it politely.
 
-9. If the candidate mentioned a technology,
-   ask about its practical implementation when appropriate.
+9. If the candidate mentioned a technology:
+   ask about practical implementation when appropriate.
 
-10. Keep the follow-up concise.
+10. Keep the question concise.
 
 11. Make it sound like a real human interviewer.
 
